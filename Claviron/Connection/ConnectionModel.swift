@@ -25,6 +25,8 @@ final class ConnectionModel {
     private var serverInfos: [ServerID: ServerInfoSnapshot] = [:]
     private var serverInfoFailures: [ServerID: ClavironClientFailure] = [:]
     private var workerStates: [ServerID: WorkerObservationState] = [:]
+    private var memoryStates: [ServerID: RuntimeMemoryObservationState] = [:]
+    @ObservationIgnored private var memoryOperationIDs: [ServerID: UUID] = [:]
     private var applicationStates: [ServerID: ApplicationObservationState] = [:]
     /// Present only while the server implements the linked-application API.
     private var linkedApplications: [ServerID: LinkedApplicationSnapshot] = [:]
@@ -108,6 +110,29 @@ final class ConnectionModel {
 
     func workerObservationState(for serverID: ServerID) -> WorkerObservationState {
         workerStates[serverID] ?? .disconnected
+    }
+
+    func runtimeMemoryState(for serverID: ServerID) -> RuntimeMemoryObservationState {
+        memoryStates[serverID] ?? .disconnected
+    }
+
+    func loadRuntimeMemory(for serverID: ServerID) async {
+        guard let client = clients[serverID], state(for: serverID).canLoadResources,
+              serverInfos[serverID]?.capabilities.contains("metrics") == true else { return }
+        if case .loading = memoryStates[serverID] { return }
+        let previous = memoryStates[serverID]?.snapshot
+        let operationID = UUID()
+        memoryOperationIDs[serverID] = operationID
+        memoryStates[serverID] = .loading(previous: previous)
+        do {
+            let snapshot = try await client.loadRuntimeMemory()
+            guard memoryOperationIDs[serverID] == operationID else { return }
+            memoryStates[serverID] = snapshot.processes.isEmpty ? .empty(snapshot) : .loaded(snapshot)
+        } catch {
+            guard memoryOperationIDs[serverID] == operationID else { return }
+            let failure = Self.failure(from: error)
+            memoryStates[serverID] = previous.map { .stale($0, failure: failure) } ?? .failed(failure)
+        }
     }
 
     func applicationObservationState(for serverID: ServerID) -> ApplicationObservationState {
@@ -1066,6 +1091,8 @@ final class ConnectionModel {
         serverInfoFailures[serverID] = nil
         workerOperationIDs[serverID] = UUID()
         workerStates[serverID] = .disconnected
+        memoryOperationIDs[serverID] = UUID()
+        memoryStates[serverID] = .disconnected
         applicationOperationIDs[serverID] = UUID()
         applicationStates[serverID] = .disconnected
         linkedApplicationOperationIDs[serverID] = UUID()
@@ -1124,6 +1151,7 @@ nonisolated enum ResourceObservationState<Snapshot: Equatable & Sendable>: Equat
 
 typealias ServiceObservationState = ResourceObservationState<ServiceFleetSnapshot>
 typealias WorkerObservationState = ResourceObservationState<WorkerFleetSnapshot>
+typealias RuntimeMemoryObservationState = ResourceObservationState<RuntimeMemorySnapshot>
 typealias ApplicationObservationState = ResourceObservationState<ApplicationFleetSnapshot>
 typealias TaskObservationState = ResourceObservationState<TaskFleetSnapshot>
 typealias HostingObservationState = ResourceObservationState<HostingInventorySnapshot>

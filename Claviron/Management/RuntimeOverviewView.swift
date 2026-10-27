@@ -27,6 +27,10 @@ struct RuntimeOverviewView: View {
         ManagementDetailLayout {
             resourceSummary
             serverInfoCard
+            RuntimeMemoryCard(
+                state: connectionModel.runtimeMemoryState(for: server.id),
+                supported: connectionModel.serverInfo(for: server.id)?.capabilities.contains("metrics") == true
+            )
 
             if let snapshot = serviceState.snapshot {
                 fleetCard(snapshot)
@@ -35,7 +39,9 @@ struct RuntimeOverviewView: View {
         .workspaceNavigationTitle("Runtime Overview")
         .pageRefreshable(every: .seconds(2)) {
             await connectionModel.refresh(server.id)
-            await connectionModel.loadRuntimeResources(for: server.id)
+            async let resources: Void = connectionModel.loadRuntimeResources(for: server.id)
+            async let memory: Void = connectionModel.loadRuntimeMemory(for: server.id)
+            _ = await (resources, memory)
         }
     }
 

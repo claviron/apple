@@ -8,11 +8,13 @@ public actor DirectClavironClient: ClavironClient {
     let grpcClient: GRPCClient<HTTP2ClientTransport.Posix>
     private let probeTimeout: Duration
     private var connectionTask: Task<Void, any Error>?
+    private let metricsClient: MetricsHTTPClient
 
     public init(
         endpoint: ClavironEndpoint,
         probeTimeout: Duration = .seconds(5)
     ) throws {
+        self.metricsClient = MetricsHTTPClient(endpoint: endpoint)
         let certificateAuthority: TLSConfig.CertificateSource = .file(
             path: endpoint.credentials.certificateAuthorityFile.path,
             format: .pem
@@ -53,6 +55,11 @@ public actor DirectClavironClient: ClavironClient {
     deinit {
         grpcClient.beginGracefulShutdown()
         connectionTask?.cancel()
+    }
+
+    public func loadRuntimeMemory() async throws -> RuntimeMemorySnapshot {
+        do { return try await metricsClient.load() }
+        catch { throw Self.map(error) }
     }
 
     public func loadServerInfo() async throws -> ServerInfoSnapshot? {
@@ -2281,6 +2288,7 @@ public actor DirectClavironClient: ClavironClient {
 
     public func disconnect() async {
         grpcClient.beginGracefulShutdown()
+        await metricsClient.close()
         _ = await connectionTask?.result
         connectionTask = nil
     }

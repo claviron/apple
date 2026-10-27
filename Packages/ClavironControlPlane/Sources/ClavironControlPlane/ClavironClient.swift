@@ -11,6 +11,7 @@ public protocol ClavironClient: Sendable {
     /// Loads server identity separately from service readiness. Nil means the
     /// endpoint does not implement GetInfo; it is not an empty server identity.
     func loadServerInfo() async throws -> ServerInfoSnapshot?
+    func loadRuntimeMemory() async throws -> RuntimeMemorySnapshot
     /// Loads the typed service-fleet observation. A successful transport call
     /// is not treated as proof that every expected fleet member is reporting.
     func loadServices() async throws -> ServiceFleetSnapshot
@@ -120,6 +121,9 @@ public protocol ClavironClient: Sendable {
 }
 
 public extension ClavironClient {
+    func loadRuntimeMemory() async throws -> RuntimeMemorySnapshot {
+        throw ClavironClientFailure(kind: .protocolMismatch, diagnosticDetail: "This client does not provide runtime metrics.")
+    }
     func loadCertificatePermissions() async throws -> CertificatePermissions {
         throw ClavironClientFailure(
             kind: .protocolMismatch,

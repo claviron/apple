@@ -35,6 +35,8 @@ let package = Package(
             url: "https://github.com/apple/swift-nio-ssl.git",
             exact: "2.37.4"
         ),
+        .package(url: "https://github.com/apple/swift-nio.git", exact: "2.102.0"),
+        .package(url: "https://github.com/apple/swift-nio-http2.git", exact: "1.46.0"),
     ],
     targets: [
         .target(
@@ -47,6 +49,10 @@ let package = Package(
                 ),
                 .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
+                .product(name: "NIOCore", package: "swift-nio"),
+                .product(name: "NIOPosix", package: "swift-nio"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
             ]
         ),
