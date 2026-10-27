@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# Local build products
+DerivedData/
+build/
+.build/
+Packages/ClavironControlPlane/.protocol-generation.*
+
+# Local development and signing settings
+AGENTS.local.md
+PLAN.md
+*.local.sh
+*.local.xcconfig
+.github-sync.local.json
+scripts/*.local.*
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.mobileprovision
