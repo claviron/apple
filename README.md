@@ -18,6 +18,18 @@ The server reports its capabilities and validates changes. Editable user fields
 and their form layout come from its schema, so the app can manage different
 applications without embedding their database models.
 
+## Download for macOS
+
+Download the Universal preview from [GitHub Releases](https://github.com/claviron/apple/releases).
+It supports Apple Silicon and Intel Macs running macOS 26 or later. Extract the
+ZIP and move `Claviron.app` to `/Applications`.
+
+The preview uses an ad-hoc signature and has not been notarized by Apple.
+If macOS blocks the first launch and you trust the download, use
+**System Settings → Privacy & Security → Open Anyway** to approve this app.
+See [Apple's opening instructions](https://support.apple.com/en-gb/102445).
+The release includes SHA-256 checksums and a manifest recording its source revision.
+
 ## Connect to a server
 
 Enable the Claviron management API on your server and obtain its CA certificate,
