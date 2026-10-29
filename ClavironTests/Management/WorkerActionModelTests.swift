@@ -230,10 +230,10 @@ struct WorkerActionModelTests {
     }
 
     @Test
-    func growthRequiresReceiptCountMembershipAndIncarnationConvergence() {
+    func growthRequiresReceiptMembershipAndOnlyTheAddedWorkerToStart() {
         let baseline = snapshot(workerCount: 2, workers: [
             worker(1, incarnation: 4),
-            worker(2, incarnation: 8),
+            worker(2, ownership: .adopted, incarnation: 8),
         ])
         let action = WorkerManagementAction.add
         let context = WorkerActionContext(
@@ -246,8 +246,8 @@ struct WorkerActionModelTests {
             baseline: baseline
         )
         let converged = snapshot(workerCount: 3, workers: [
-            worker(1, incarnation: 5),
-            worker(2, incarnation: 9),
+            worker(1, incarnation: 4),
+            worker(2, ownership: .adopted, incarnation: 8),
             worker(3, incarnation: 1),
         ])
 
@@ -259,16 +259,93 @@ struct WorkerActionModelTests {
             context: context,
             observation: snapshot(workerCount: 3, workers: Array(converged.workers.dropLast()))
         ) == .notYetObserved)
-        // Growth rolls the retained workers; until they carry new incarnations
-        // the fleet has not converged.
+        // Starting the new slot is not completion until it reports Running.
         #expect(WorkerActionModel.assess(
             context: context,
             observation: snapshot(workerCount: 3, workers: [
                 worker(1, incarnation: 4),
-                worker(2, incarnation: 8),
-                worker(3, incarnation: 1),
+                worker(2, ownership: .adopted, incarnation: 8),
+                worker(3, lifecycle: .starting, incarnation: 1),
             ])
         ) == .notYetObserved)
+        #expect(WorkerActionModel.assess(
+            context: context,
+            observation: snapshot(workerCount: 3, workers: [
+                worker(1, incarnation: 5),
+                worker(2, ownership: .adopted, incarnation: 8),
+                worker(3, incarnation: 1),
+            ])
+        ) == .failed(ClavironClientFailure(
+            kind: .operationFailed,
+            diagnosticDetail: "Worker 1 was replaced during fleet growth: expected incarnation 4, observed 5."
+        )))
+    }
+
+    @Test
+    func addingFifthWorkerCompletesWithoutReplacingTheFirstFour() async throws {
+        let baseline = snapshot(workerCount: 4, workers: (1...4).map {
+            worker(UInt32($0), incarnation: 7)
+        })
+        let observed = snapshot(workerCount: 5, workers: baseline.workers + [worker(5)])
+        let receipt = WorkerManagementReceipt(
+            action: .add,
+            accepted: true,
+            submissionKey: 42,
+            previousWorkerCount: 4,
+            targetWorkerCount: 5
+        )
+        try #require(WorkerActionModel.assess(
+            context: WorkerActionContext(receipt: receipt, baseline: baseline),
+            observation: observed
+        ) == .completed)
+        let client = MockClavironClient(
+            results: [.success(.preview)],
+            workerResults: [.success(observed)],
+            workerActionResults: [.success(receipt)]
+        )
+        let connection = ConnectionModel(
+            applicationModel: ApplicationModel.preview(configuration: TestConfiguration.valid)
+        ) { _ in client }
+        let model = WorkerActionModel(
+            serverID: TestConfiguration.primaryServerID,
+            connectionModel: connection
+        )
+        await model.perform(.add, baseline: baseline)
+        #expect(!model.isBusy)
+        guard case let .succeeded(context, observation) = model.state else {
+            Issue.record("Added running worker did not finish the command card")
+            return
+        }
+        #expect(context.receipt == receipt)
+        #expect(observation == observed)
+        #expect(await client.workerRequestCount == 1)
+    }
+
+    @Test
+    func growthKeepsStoppedSlotsAndRequiresOwnershipOfTheAddedWorker() {
+        let baseline = snapshot(workerCount: 2, workers: [
+            worker(1, incarnation: 4),
+            worker(2, lifecycle: .stopped, incarnation: 8),
+        ])
+        let context = WorkerActionContext(
+            receipt: WorkerManagementReceipt(
+                action: .add, accepted: true, previousWorkerCount: 2, targetWorkerCount: 3
+            ),
+            baseline: baseline
+        )
+        #expect(WorkerActionModel.assess(
+            context: context,
+            observation: snapshot(workerCount: 3, workers: baseline.workers + [worker(3)])
+        ) == .completed)
+        #expect(WorkerActionModel.assess(
+            context: context,
+            observation: snapshot(workerCount: 3, workers: baseline.workers + [
+                worker(3, ownership: .unowned),
+            ])
+        ) == .failed(ClavironClientFailure(
+            kind: .operationFailed,
+            diagnosticDetail: "Worker 3 is running without supervisor process ownership."
+        )))
     }
 
     /// Shrink drains only the removed slot. A retained worker that shows a new
@@ -519,8 +596,8 @@ private let actionCases: [WorkerActionCase] = {
             ),
             baseline: runningTwo,
             observation: snapshot(workerCount: 3, workers: [
-                worker(1, reloadRevision: 2, incarnation: 4),
-                worker(2, reloadRevision: 5, incarnation: 8),
+                worker(1, reloadRevision: 2, incarnation: 3),
+                worker(2, reloadRevision: 5, incarnation: 7),
                 worker(3, incarnation: 1),
             ])
         ),

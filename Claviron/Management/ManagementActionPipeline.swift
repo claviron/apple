@@ -226,11 +226,14 @@ final class ManagementActionPipeline<
         assess: @MainActor (Response, Snapshot) -> ManagementActionObservationAssessment
     ) {
         let response: Response
+        let isWaiting: Bool
         switch state {
         case let .waiting(currentResponse, _, _):
             response = currentResponse
+            isWaiting = true
         case let .failed(_, acceptedResponse: .some(currentResponse)):
             response = currentResponse
+            isWaiting = false
         case .idle, .submitting, .accepted, .acknowledged, .completed,
              .refreshing, .succeeded, .rejected,
              .failed(_, acceptedResponse: nil):
@@ -242,6 +245,9 @@ final class ManagementActionPipeline<
             state = .succeeded(response: response, observation: observation)
             operationID = UUID()
         case .notYetObserved:
+            // Passive refreshes may prove late completion, but cannot restart
+            // an expired or cancelled wait with no task left to finish it.
+            guard isWaiting else { return }
             state = .waiting(
                 response: response,
                 latestObservation: observation,

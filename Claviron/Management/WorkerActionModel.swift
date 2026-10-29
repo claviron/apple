@@ -72,7 +72,7 @@ final class WorkerActionModel {
         pipeline.reset()
     }
 
-    /// The rules claviron-client applies, so both clients prove the same thing.
+    /// Completion follows the supervisor's authoritative runtime postconditions.
     ///
     /// Acceptance is only a submission; completion is the postcondition on the
     /// authoritative snapshot. A running worker counts only while the master
@@ -222,10 +222,9 @@ final class WorkerActionModel {
         return completion(ownershipFailure(running: after, spawnedOnly: true))
     }
 
-    /// Growth rolls every retained running worker onto the new size; shrink
-    /// drains only the removed slot and leaves the retained workers as they
-    /// were, so a retained worker with a new incarnation after a shrink was
-    /// rolled by mistake.
+    /// Resize preserves retained workers. Growth boots only the added slot;
+    /// shrink drains only the removed slot. Bootstrap counts describe a
+    /// process's birth and do not require replacing it when fleet size changes.
     private nonisolated static func resizeAssessment(
         receipt: WorkerManagementReceipt,
         baseline: WorkerFleetSnapshot,
@@ -255,16 +254,11 @@ final class WorkerActionModel {
                 return .failed(failure)
             }
             switch before.lifecycle {
-            case .running where growing:
-                let assessment = restarted(before: before, after: after, operation: operation)
-                guard assessment == .completed else {
-                    return assessment
-                }
             case .running:
                 guard after.incarnation == before.incarnation else {
                     return .failed(ClavironClientFailure(
                         kind: .operationFailed,
-                        diagnosticDetail: "Worker \(after.workerID) was replaced during fleet shrink: expected incarnation \(before.incarnation), observed \(after.incarnation)."
+                        diagnosticDetail: "Worker \(after.workerID) was replaced during \(operation): expected incarnation \(before.incarnation), observed \(after.incarnation)."
                     ))
                 }
                 guard after.lifecycle == .running else {

@@ -189,6 +189,38 @@ struct ManagementActionPipelineTests {
         }
 
         #expect(pipeline.state == .failed(failure, acceptedResponse: response))
+        pipeline.incorporate(observation: observation) { _, _ in .notYetObserved }
+        #expect(pipeline.state == .failed(failure, acceptedResponse: response))
+    }
+
+    @Test
+    func passiveRefreshDoesNotRestartAnExpiredWaitButCanProveLateCompletion() async {
+        let pipeline = ManagementActionPipeline<TestActionResponse, TestActionObservation>()
+        var refreshCount = 0
+        await pipeline.perform(
+            waitPolicy: ManagementActionWaitPolicy(timeout: .zero, pollInterval: .zero)
+        ) {
+            .accepted(response)
+        } refresh: {
+            refreshCount += 1
+            return observation
+        } assess: { _, _ in
+            .notYetObserved
+        }
+        let expired = pipeline.state
+        guard case let .failed(failure, acceptedResponse) = expired else {
+            Issue.record("zero-budget wait did not expire")
+            return
+        }
+        #expect(failure.kind == .timedOut)
+        #expect(acceptedResponse == response)
+        #expect(refreshCount == 0)
+        pipeline.incorporate(observation: TestActionObservation(revision: 3)) { _, _ in
+            .notYetObserved
+        }
+        #expect(pipeline.state == expired)
+        pipeline.incorporate(observation: observation) { _, _ in .completed }
+        #expect(pipeline.state == .succeeded(response: response, observation: observation))
     }
 
     @Test
