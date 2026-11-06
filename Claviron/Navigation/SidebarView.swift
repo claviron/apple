@@ -3,6 +3,9 @@ import SwiftUI
 struct SidebarView: View {
     @Binding var selection: AppDestination?
     var userManagementAvailable = false
+#if os(macOS)
+    var density: SidebarDensity = .expanded
+#endif
     @Environment(\.navigationHistory) private var history
 
     var body: some View {
@@ -10,6 +13,7 @@ struct SidebarView: View {
         NavigationRailView(
             selection: $selection,
             userManagementAvailable: userManagementAvailable,
+            density: density,
             openGroup: openGroup
         )
 #else
@@ -55,6 +59,7 @@ struct SidebarView: View {
 private struct NavigationRailView: View {
     @Binding var selection: AppDestination?
     var userManagementAvailable = false
+    let density: SidebarDensity
     let openGroup: (NavigationGroup) -> Void
     @State private var hoverMenu = RailHoverMenu()
     @AppStorage(NavigationPins.storageKey) private var storedPins = NavigationPins.defaultValue
@@ -84,16 +89,19 @@ private struct NavigationRailView: View {
         .frame(width: SidebarDensity.railWidth)
         .frame(maxHeight: .infinity, alignment: .top)
         .overlayPreferenceValue(RailMenuAnchors.self) { anchors in
-            GeometryReader { geometry in
-                RailHoverOverlay(
-                    menu: hoverMenu,
-                    triggers: anchors.mapValues { geometry[$0] },
-                    railSize: geometry.size,
-                    selection: $selection,
-                    userManagementAvailable: userManagementAvailable
-                )
+            if density == .compact {
+                GeometryReader { geometry in
+                    RailHoverOverlay(
+                        menu: hoverMenu,
+                        triggers: anchors.mapValues { geometry[$0] },
+                        railSize: geometry.size,
+                        selection: $selection,
+                        userManagementAvailable: userManagementAvailable
+                    )
+                }
             }
         }
+        .onChange(of: density) { _, _ in hoverMenu.dismiss() }
         .accessibilityIdentifier("navigation-rail")
     }
 

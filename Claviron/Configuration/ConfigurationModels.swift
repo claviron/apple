@@ -46,9 +46,14 @@ nonisolated struct ServerProfile: Identifiable, Codable, Equatable, Sendable {
 nonisolated struct TLSProfile: Identifiable, Codable, Equatable, Sendable {
     let id: TLSProfileID
     var name: String
-    var caCertificatePath: String
+    var caCertificatePath: String?
     var clientCertificatePath: String
     var clientPrivateKeyPath: String
+    var username: String? = nil
+
+    static func identityName(username: String?, serverName: String) -> String {
+        username.map { "\($0)@\(serverName)" } ?? serverName
+    }
 }
 
 nonisolated struct ClientConfiguration: Codable, Equatable, Sendable {
@@ -102,6 +107,11 @@ nonisolated struct ClientConfiguration: Codable, Equatable, Sendable {
         return servers.first { $0.id == activeServerID }
     }
 
+    func connectionName(for server: ServerProfile) -> String {
+        let username = tlsProfiles.first { $0.id == server.tlsProfileID }?.username
+        return TLSProfile.identityName(username: username, serverName: server.name)
+    }
+
     func validate() throws {
         guard schemaVersion == Self.currentSchemaVersion else {
             throw ConfigurationValidationError.unsupportedSchemaVersion(
@@ -147,11 +157,9 @@ nonisolated struct ClientConfiguration: Codable, Equatable, Sendable {
                 throw ConfigurationValidationError.emptyTLSProfileName(profile.id)
             }
 
-            try validateCredentialPath(
-                profile.caCertificatePath,
-                field: .certificateAuthority,
-                profileID: profile.id
-            )
+            if let path = profile.caCertificatePath {
+                try validateCredentialPath(path, field: .certificateAuthority, profileID: profile.id)
+            }
             try validateCredentialPath(
                 profile.clientCertificatePath,
                 field: .clientCertificate,

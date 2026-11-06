@@ -11,6 +11,10 @@ struct OverviewView: View {
         connectionModel.state(for: server.id)
     }
 
+    private var connectionName: String {
+        TLSProfile.identityName(username: tlsProfile?.username, serverName: server.name)
+    }
+
     private var brandTitle: String {
         guard let name = connectionModel.serverInfo(for: server.id)?.name,
               !name.isEmpty else { return "Claviron" }
@@ -27,7 +31,7 @@ struct OverviewView: View {
                         Text("Control Plane Overview")
                             .font(.title3.weight(.medium))
                             .foregroundStyle(.secondary)
-                        Text(server.name)
+                        Text(connectionName)
                             .font(.headline)
                             .padding(.top, 7)
                         Text(server.address)
@@ -46,7 +50,7 @@ struct OverviewView: View {
 
             ManagementDetailCard("Connection", systemImage: state.systemImage, tint: connectionTint) {
                 VStack(alignment: .leading, spacing: 10) {
-                    LabeledContent("Server", value: server.name)
+                    LabeledContent("Identity", value: connectionName)
                     LabeledContent("Endpoint", value: server.address)
                     LabeledContent("State", value: state.title)
                     LabeledContent("TLS Profile", value: tlsProfile?.name ?? "Not configured")

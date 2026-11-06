@@ -23,16 +23,30 @@ subject to the [Python Software Foundation's trademark policy](https://www.pytho
 
 ## Framework and ecosystem marks
 
-The Laravel, Symfony, FastAPI, Django, Flask, NestJS, Node.js, TypeScript,
-React, Vue, Svelte, Astro and Nuxt SVGs were sourced from the Zonalogo
+The Laravel, Symfony, FastAPI, Flask, NestJS, Node.js, TypeScript,
+React, Vue, Svelte, Astro, Nuxt, PHP, Java, Kotlin, Flutter and Prometheus SVGs were sourced from the Zonalogo
 collection. [Zonalogo's attribution notice](https://zonalogo.com/about)
 identifies the respective brands as the owners of those assets.
+
+The supplied macOS, Linux, Django, Spring, Tomcat and Apache SVGs identify
+SVG Repo as their source. FreeBSD and the alternate Tux artwork were supplied
+as transparent PNGs. PHP omits its rectangular backdrop and uses a lighter
+purple in dark mode; Apache uses white in dark mode.
 
 Astro's bundled variant omits embedded bitmap fills and adapts its upper
 shape for light and dark appearance. Deno also has light/dark variants.
 PHP, JavaScript, Lua, Deno and the other runtime and framework marks belong
 to their respective projects; the application's software license does not
 relicense those marks.
+
+## Go and FrankenPHP
+
+`Go` uses the [Go project's blue SVG logo](https://go.dev/images/go-logo-blue.svg).
+The Go name and logo remain subject to the project's
+[brand and trademark guidelines](https://go.dev/brand).
+
+`FrankenPHP` uses the [project website's SVG elephant icon](https://frankenphp.dev/icon.svg).
+The artwork identifies FrankenPHP and retains its upstream ownership and terms.
 
 ## Orbitive
 

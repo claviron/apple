@@ -3,7 +3,6 @@ import Foundation
 nonisolated struct InitialConfigurationInput: Equatable, Sendable {
     var serverName = ""
     var serverAddress = ""
-    var tlsProfileName = ""
 
     /// Fold this wizard run into a configuration that already has entries.
     /// The wizard is the one place that adds a server and the credentials it
@@ -11,6 +10,7 @@ nonisolated struct InitialConfigurationInput: Equatable, Sendable {
     /// existing active selection is left alone unless there is none.
     func addingTo(
         _ configuration: ClientConfiguration,
+        username: String,
         serverID: ServerID = ServerID(rawValue: UUID().uuidString.lowercased()),
         tlsProfileID: TLSProfileID = TLSProfileID(rawValue: UUID().uuidString.lowercased()),
         credentialPaths: TLSCredentialPaths
@@ -19,10 +19,11 @@ nonisolated struct InitialConfigurationInput: Equatable, Sendable {
         candidate.tlsProfiles.append(
             TLSProfile(
                 id: tlsProfileID,
-                name: tlsProfileName,
+                name: TLSProfile.identityName(username: username, serverName: serverName),
                 caCertificatePath: credentialPaths.caCertificatePath,
                 clientCertificatePath: credentialPaths.clientCertificatePath,
-                clientPrivateKeyPath: credentialPaths.clientPrivateKeyPath
+                clientPrivateKeyPath: credentialPaths.clientPrivateKeyPath,
+                username: username
             )
         )
         candidate.servers.append(
@@ -39,35 +40,5 @@ nonisolated struct InitialConfigurationInput: Equatable, Sendable {
 
         try candidate.validate()
         return candidate
-    }
-
-    func makeConfiguration(
-        serverID: ServerID = ServerID(rawValue: UUID().uuidString.lowercased()),
-        tlsProfileID: TLSProfileID = TLSProfileID(rawValue: UUID().uuidString.lowercased()),
-        credentialPaths: TLSCredentialPaths
-    ) throws -> ClientConfiguration {
-        let configuration = ClientConfiguration(
-            activeServerID: serverID,
-            servers: [
-                ServerProfile(
-                    id: serverID,
-                    name: serverName,
-                    address: serverAddress,
-                    tlsProfileID: tlsProfileID
-                ),
-            ],
-            tlsProfiles: [
-                TLSProfile(
-                    id: tlsProfileID,
-                    name: tlsProfileName,
-                    caCertificatePath: credentialPaths.caCertificatePath,
-                    clientCertificatePath: credentialPaths.clientCertificatePath,
-                    clientPrivateKeyPath: credentialPaths.clientPrivateKeyPath
-                ),
-            ]
-        )
-
-        try configuration.validate()
-        return configuration
     }
 }

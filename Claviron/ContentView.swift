@@ -63,16 +63,21 @@ struct ContentView: View {
             ) { refresh in
                 Color.clear.frame(width: 0, height: 0)
                     .toolbar {
-                        ToolbarItemGroup(placement: .primaryAction) {
-                            ActiveServerPicker(applicationModel: applicationModel)
-                            if let serverID = applicationModel.configuration.activeServerID {
-                                ConnectionStatusControl(
-                                    serverID: serverID,
-                                    connectionModel: connectionModel,
-                                    pageRefresh: refresh
-                                )
+                        ToolbarItem(placement: .primaryAction) {
+                            HStack(spacing: 10) {
+                                ActiveServerPicker(applicationModel: applicationModel)
+                                if let serverID = applicationModel.configuration.activeServerID {
+                                    ConnectionStatusControl(
+                                        serverID: serverID,
+                                        connectionModel: connectionModel,
+                                        pageRefresh: refresh
+                                    )
+                                }
                             }
                         }
+#if os(macOS)
+                        .sharedBackgroundVisibility(.hidden)
+#endif
                     }
 #if os(macOS)
                     .focusedSceneValue(\.clavironPageRefreshCommands, refresh)
@@ -104,7 +109,11 @@ struct ContentView: View {
     private var navigation: some View {
 #if os(macOS)
         HStack(spacing: 0) {
-            SidebarView(selection: destinationSelection, userManagementAvailable: userManagementAvailable)
+            SidebarView(
+                selection: destinationSelection,
+                userManagementAvailable: userManagementAvailable,
+                density: SidebarDensity.resolve(storedDensity)
+            )
                 .zIndex(1)
             WorkspaceView(
                 density: SidebarDensity.resolve(storedDensity),
@@ -312,7 +321,10 @@ struct ContentView: View {
                 )
             }
         } else if destination == .settings {
-            ConfigurationView(applicationModel: applicationModel)
+            ConfigurationView(
+                applicationModel: applicationModel,
+                connectionModel: connectionModel
+            )
         } else {
             DestinationPlaceholderView(destination: destination)
         }
@@ -323,7 +335,7 @@ private struct ActiveConnectionIdentity: Hashable {
     let serverID: ServerID
     let address: String
     let tlsProfileID: TLSProfileID
-    let caCertificatePath: String
+    let caCertificatePath: String?
     let clientCertificatePath: String
     let clientPrivateKeyPath: String
 }

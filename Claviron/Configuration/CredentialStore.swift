@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 nonisolated struct ImportedCredential: Equatable, Sendable {
@@ -56,51 +57,8 @@ nonisolated struct ImportedCredential: Equatable, Sendable {
     }
 }
 
-nonisolated struct TLSCredentialImport: Equatable, Sendable {
-    var certificateAuthority: ImportedCredential?
-    var clientCertificate: ImportedCredential?
-    var clientPrivateKey: ImportedCredential?
-
-    func validate() throws {
-        for role in TLSCredentialRole.allCases {
-            guard let credential = self[role] else {
-                throw CredentialStoreError.missingCredential(role)
-            }
-            guard !credential.data.isEmpty else {
-                throw CredentialStoreError.emptyFile(credential.fileName)
-            }
-            guard credential.data.count <= ImportedCredential.maximumByteCount else {
-                throw CredentialStoreError.fileTooLarge(credential.fileName)
-            }
-        }
-    }
-
-    subscript(role: TLSCredentialRole) -> ImportedCredential? {
-        get {
-            switch role {
-            case .certificateAuthority:
-                certificateAuthority
-            case .clientCertificate:
-                clientCertificate
-            case .clientPrivateKey:
-                clientPrivateKey
-            }
-        }
-        set {
-            switch role {
-            case .certificateAuthority:
-                certificateAuthority = newValue
-            case .clientCertificate:
-                clientCertificate = newValue
-            case .clientPrivateKey:
-                clientPrivateKey = newValue
-            }
-        }
-    }
-}
-
 nonisolated struct TLSCredentialPaths: Equatable, Sendable {
-    let caCertificatePath: String
+    let caCertificatePath: String?
     let clientCertificatePath: String
     let clientPrivateKeyPath: String
 
@@ -114,18 +72,6 @@ nonisolated struct TLSCredentialPaths: Equatable, Sendable {
 nonisolated enum TLSCredentialRole: String, CaseIterable, Sendable {
     case certificateAuthority
     case clientCertificate
-    case clientPrivateKey
-
-    var title: String {
-        switch self {
-        case .certificateAuthority:
-            "CA Certificate"
-        case .clientCertificate:
-            "Client Certificate"
-        case .clientPrivateKey:
-            "Client Private Key"
-        }
-    }
 
     var storedFileName: String {
         switch self {
@@ -133,24 +79,68 @@ nonisolated enum TLSCredentialRole: String, CaseIterable, Sendable {
             "ca.pem"
         case .clientCertificate:
             "client.pem"
-        case .clientPrivateKey:
-            "client-key.pem"
         }
     }
 }
 
+nonisolated enum StoredDeviceKey: Sendable {
+    case unencrypted(P256.Signing.PrivateKey)
+    case encrypted(String)
+}
+
 actor CredentialStore {
+    nonisolated static let deviceKeyPath = "Identity/client-key.pem"
     nonisolated let rootDirectoryURL: URL
 
     init(rootDirectoryURL: URL) {
         self.rootDirectoryURL = rootDirectoryURL
     }
 
+    func loadDeviceKey() throws -> StoredDeviceKey? {
+        let url = try fileURL(for: Self.deviceKeyPath)
+        let pem: String
+        do {
+            pem = try String(contentsOf: url, encoding: .utf8)
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return nil
+        }
+        if PrivateKeyProtection.isEncrypted(pem) {
+            return .encrypted(pem)
+        }
+        return .unencrypted(try P256.Signing.PrivateKey(pemRepresentation: pem))
+    }
+
+    func unlockDeviceKey(password: String) throws -> P256.Signing.PrivateKey {
+        guard case let .encrypted(pem)? = try loadDeviceKey() else {
+            throw DeviceKeyError.invalidProtection
+        }
+        return try PrivateKeyProtection.decrypt(pem, password: password)
+    }
+
+    func createDeviceKey(password: String?) throws -> P256.Signing.PrivateKey {
+        guard try loadDeviceKey() == nil else { throw DeviceKeyError.alreadyExists }
+        let url = try fileURL(for: Self.deviceKeyPath)
+        let directory = url.deletingLastPathComponent()
+        let fileManager = FileManager.default
+        try createPrivateDirectory(directory, fileManager: fileManager)
+        try excludeFromBackup(directory)
+        let staged = directory.appendingPathComponent(".key-\(UUID())")
+        defer { try? fileManager.removeItem(at: staged) }
+
+        let key = P256.Signing.PrivateKey()
+        let data = try password.map { try PrivateKeyProtection.encrypt(key, password: $0) }
+            ?? Data(key.pemRepresentation.utf8)
+        try data.write(to: staged, options: .withoutOverwriting)
+        try protectFile(at: staged, fileManager: fileManager)
+        try fileManager.moveItem(at: staged, to: url)
+        return key
+    }
+
     func install(
-        _ credentials: TLSCredentialImport,
+        _ certificates: EnrollmentCertificates,
         for profileID: TLSProfileID
     ) throws -> TLSCredentialPaths {
-        try credentials.validate()
+        guard try loadDeviceKey() != nil else { throw CredentialStoreError.missingDeviceKey }
         guard profileID.rawValue.isSafeIdentifier else {
             throw CredentialStoreError.unsafeProfileID(profileID)
         }
@@ -172,13 +162,17 @@ actor CredentialStore {
             try createPrivateDirectory(stagingDirectoryURL, fileManager: fileManager)
 
             for role in TLSCredentialRole.allCases {
-                guard let credential = credentials[role] else {
-                    throw CredentialStoreError.missingCredential(role)
+                let data = switch role {
+                case .certificateAuthority: certificates.authorityPEM
+                case .clientCertificate: certificates.clientChainPEM
+                }
+                guard !data.isEmpty else {
+                    throw CredentialStoreError.emptyFile(role.storedFileName)
                 }
 
                 let destinationURL = stagingDirectoryURL
                     .appendingPathComponent(role.storedFileName, isDirectory: false)
-                try credential.data.write(to: destinationURL, options: .atomic)
+                try data.write(to: destinationURL, options: .atomic)
                 try protectFile(at: destinationURL, fileManager: fileManager)
             }
 
@@ -199,7 +193,7 @@ actor CredentialStore {
         return TLSCredentialPaths(
             caCertificatePath: "\(relativeDirectory)/\(TLSCredentialRole.certificateAuthority.storedFileName)",
             clientCertificatePath: "\(relativeDirectory)/\(TLSCredentialRole.clientCertificate.storedFileName)",
-            clientPrivateKeyPath: "\(relativeDirectory)/\(TLSCredentialRole.clientPrivateKey.storedFileName)"
+            clientPrivateKeyPath: Self.deviceKeyPath
         )
     }
 
@@ -270,7 +264,7 @@ actor CredentialStore {
 }
 
 nonisolated enum CredentialStoreError: Error, Equatable, LocalizedError, Sendable {
-    case missingCredential(TLSCredentialRole)
+    case missingDeviceKey
     case notARegularFile(String)
     case emptyFile(String)
     case fileTooLarge(String)
@@ -283,8 +277,8 @@ nonisolated enum CredentialStoreError: Error, Equatable, LocalizedError, Sendabl
 
     var errorDescription: String? {
         switch self {
-        case let .missingCredential(role):
-            "Select the \(role.title.lowercased())."
+        case .missingDeviceKey:
+            "The saved device private key is missing."
         case let .notARegularFile(fileName):
             "'\(fileName)' is not a regular file."
         case let .emptyFile(fileName):

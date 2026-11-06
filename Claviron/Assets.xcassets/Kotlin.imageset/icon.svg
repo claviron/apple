@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" version="1.1" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(4.166667,0,0,4.166667,0,0)">
+        <path d="M48,48L0,48L0,0L48,0L23.505,23.648L48,48Z" style="fill:url(#_Radial1);fill-rule:nonzero;" />
+    </g>
+    <defs>
+        <radialGradient id="_Radial1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-48,0,0,-48,48,0)"><stop offset="0" style="stop-color:rgb(228,72,87);stop-opacity:1" /><stop offset="0.5" style="stop-color:rgb(199,17,225);stop-opacity:1" /><stop offset="1" style="stop-color:rgb(127,82,255);stop-opacity:1" /></radialGradient>
+    </defs>
+</svg>

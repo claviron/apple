@@ -832,7 +832,7 @@ extension TaskKindObservation {
     var assetImage: String? {
         switch self {
         case .builtin: "TaskIconRust"
-        case .php: "TaskIconPHP"
+        case .php: "PHP"
         case .js: "TaskIconJavaScript"
         case .lua: "TaskIconLua"
         case .command, .unspecified, .unrecognized: nil

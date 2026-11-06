@@ -10,24 +10,8 @@ struct ManagementViewRenderingTests {
         let applicationModel = ApplicationModel.preview()
         let input = InitialConfigurationInput(
             serverName: "Production",
-            serverAddress: "https://control.example.com:7443",
-            tlsProfileName: "Operator"
+            serverAddress: "https://control.example.com:7443"
         )
-        let credentials = TLSCredentialImport(
-            certificateAuthority: ImportedCredential(
-                fileName: "ca.pem",
-                data: Data("ca".utf8)
-            ),
-            clientCertificate: ImportedCredential(
-                fileName: "client.pem",
-                data: Data("certificate".utf8)
-            ),
-            clientPrivateKey: ImportedCredential(
-                fileName: "client-key.pem",
-                data: Data("private key".utf8)
-            )
-        )
-
         let sizes: [(name: String, width: CGFloat, height: CGFloat)] = [
             ("Wide", 800, 700),
             ("Compact", 390, 844),
@@ -38,8 +22,7 @@ struct ManagementViewRenderingTests {
                 let view = InitialConfigurationView(
                     applicationModel: applicationModel,
                     initialStep: step,
-                    input: input,
-                    credentials: credentials
+                    input: input
                 )
                 let renderer = ImageRenderer(
                     content: view.frame(width: size.width, height: size.height)

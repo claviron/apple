@@ -90,9 +90,15 @@ actor MetricsHTTPClient {
     private static func connect(_ endpoint: ClavironEndpoint) async throws -> Connection {
         var tls = TLSConfiguration.makeClientConfiguration()
         tls.certificateVerification = .fullVerification
-        tls.trustRoots = .certificates(try NIOSSLCertificate.fromPEMFile(endpoint.credentials.certificateAuthorityFile.path))
+        if let authority = endpoint.credentials.certificateAuthorityFile {
+            tls.trustRoots = .certificates(try NIOSSLCertificate.fromPEMFile(authority.path))
+        }
         tls.certificateChain = try NIOSSLCertificate.fromPEMFile(endpoint.credentials.clientCertificateFile.path).map { .certificate($0) }
-        tls.privateKey = .privateKey(try NIOSSLPrivateKey(file: endpoint.credentials.clientPrivateKeyFile.path, format: .pem))
+        let privateKey = switch endpoint.credentials.clientPrivateKey {
+        case let .file(url): try NIOSSLPrivateKey(file: url.path, format: .pem)
+        case let .pem(data): try NIOSSLPrivateKey(bytes: Array(data), format: .pem)
+        }
+        tls.privateKey = .privateKey(privateKey)
         tls.applicationProtocols = ["h2"]
         let context = try NIOSSLContext(configuration: tls)
         let hostname = (try? SocketAddress(ipAddress: endpoint.host, port: endpoint.port)) == nil ? endpoint.host : nil

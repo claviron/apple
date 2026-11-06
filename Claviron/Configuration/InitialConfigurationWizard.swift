@@ -1,15 +1,15 @@
 import Foundation
 
 nonisolated enum InitialConfigurationStep: Int, CaseIterable, Equatable, Sendable {
-    case welcome
+    case key
     case server
     case identity
     case review
 
     var title: String {
         switch self {
-        case .welcome:
-            "Welcome"
+        case .key:
+            "Device Key"
         case .server:
             "Server"
         case .identity:
@@ -29,39 +29,32 @@ nonisolated enum InitialConfigurationStep: Int, CaseIterable, Equatable, Sendabl
 
     func validate(
         input: InitialConfigurationInput,
-        credentials: TLSCredentialImport
+        enrollment: EnrollmentInput,
+        hasLoadedKey: Bool
     ) throws {
+        guard hasLoadedKey else {
+            throw InitialConfigurationWizardError.deviceKeyRequired
+        }
         switch self {
-        case .welcome:
+        case .key:
             return
         case .server:
             guard !input.serverName.isBlank else {
                 throw InitialConfigurationWizardError.missingServerName
             }
-            guard input.serverAddress.isValidHTTPSEndpoint else {
-                throw InitialConfigurationWizardError.invalidServerAddress
-            }
-        case .identity:
-            guard !input.tlsProfileName.isBlank else {
-                throw InitialConfigurationWizardError.missingTLSProfileName
-            }
-            try credentials.validate()
-        case .review:
-            _ = try input.makeConfiguration(
-                serverID: ServerID(rawValue: "initial-server"),
-                tlsProfileID: TLSProfileID(rawValue: "initial-identity"),
-                credentialPaths: .validationPlaceholder
-            )
-            try credentials.validate()
+            _ = try enrollment.registrationURL()
+        case .identity, .review:
+            _ = try enrollment.endpoint()
         }
     }
 
     func canContinue(
         input: InitialConfigurationInput,
-        credentials: TLSCredentialImport
+        enrollment: EnrollmentInput,
+        hasLoadedKey: Bool
     ) -> Bool {
         do {
-            try validate(input: input, credentials: credentials)
+            try validate(input: input, enrollment: enrollment, hasLoadedKey: hasLoadedKey)
             return true
         } catch {
             return false
@@ -70,18 +63,15 @@ nonisolated enum InitialConfigurationStep: Int, CaseIterable, Equatable, Sendabl
 }
 
 nonisolated enum InitialConfigurationWizardError: Error, Equatable, LocalizedError, Sendable {
+    case deviceKeyRequired
     case missingServerName
-    case invalidServerAddress
-    case missingTLSProfileName
 
     var errorDescription: String? {
         switch self {
+        case .deviceKeyRequired:
+            "Generate or unlock your device key."
         case .missingServerName:
             "Give this Claviron server a name."
-        case .invalidServerAddress:
-            "Enter an HTTPS server address without a path."
-        case .missingTLSProfileName:
-            "Give this mutual TLS identity a name."
         }
     }
 }

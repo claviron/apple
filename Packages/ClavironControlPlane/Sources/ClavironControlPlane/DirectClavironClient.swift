@@ -15,25 +15,26 @@ public actor DirectClavironClient: ClavironClient {
         probeTimeout: Duration = .seconds(5)
     ) throws {
         self.metricsClient = MetricsHTTPClient(endpoint: endpoint)
-        let certificateAuthority: TLSConfig.CertificateSource = .file(
-            path: endpoint.credentials.certificateAuthorityFile.path,
-            format: .pem
-        )
+        let certificateAuthority: TLSConfig.CertificateSource? = endpoint.credentials.certificateAuthorityFile.map {
+            .file(path: $0.path, format: .pem)
+        }
         let clientCertificate: TLSConfig.CertificateSource = .file(
             path: endpoint.credentials.clientCertificateFile.path,
             format: .pem
         )
-        let clientPrivateKey: TLSConfig.PrivateKeySource = .file(
-            path: endpoint.credentials.clientPrivateKeyFile.path,
-            format: .pem
-        )
+        let clientPrivateKey: TLSConfig.PrivateKeySource = switch endpoint.credentials.clientPrivateKey {
+        case let .file(url): .file(path: url.path, format: .pem)
+        case let .pem(data): .bytes(Array(data), format: .pem)
+        }
 
         let transportSecurity = HTTP2ClientTransport.Posix.TransportSecurity.mTLS(
             certificateChain: [clientCertificate],
             privateKey: clientPrivateKey
         ) { configuration in
             configuration.serverCertificateVerification = .fullVerification
-            configuration.trustRoots = .certificates([certificateAuthority])
+            if let certificateAuthority {
+                configuration.trustRoots = .certificates([certificateAuthority])
+            }
         }
 
         do {

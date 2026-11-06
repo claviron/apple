@@ -11,10 +11,13 @@ Codes are case-insensitive. Supported choices:
 
 | Codes | Presentation |
 | --- | --- |
-| `php`, `python`, `javascript`, `lua`, `olua`, `rust` | Existing runtime brand icons |
+| `php`, `python`, `javascript`, `lua`, `olua`, `rust`, `go`, `golang`, `java`, `kotlin` | Runtime/language brand icons |
 | `laravel`, `symfony`, `fastapi`, `django`, `flask`, `nestjs` | Bundled framework brand icons |
+| `frankenphp`, `franken` | FrankenPHP's elephant icon |
+| `flutter`, `spring`, `tomcat`, `apache`, `prometheus` | Framework and server brand icons |
 | `react`, `vue`, `svelte`, `astro`, `nuxt` | Bundled frontend framework brand icons |
-| `node`, `deno`, `typescript` | Bundled optional JavaScript ecosystem icons |
+| `node`, `nodejs`, `node.js`, `deno`, `typescript` | Bundled optional JavaScript ecosystem icons |
+| `macos`, `linux`, `freebsd`, `tux` | OS and mascot icons |
 | `orbit`, `orbitive` | Orbitive's orbit symbol without its wordmark |
 | `hono`, `elysia`, `express`, `fastify`, `koa`, `hapi` | Selected system symbols, not official logos |
 | `starlette`, `quart`, `sanic`, `litestar`, `falcon` | Selected system symbols, not official logos |

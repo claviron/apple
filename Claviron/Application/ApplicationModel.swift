@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Observation
 import ClavironControlPlane
@@ -8,9 +9,13 @@ final class ApplicationModel {
     private let registry: ConfigurationRegistry?
     private let credentialStore: CredentialStore?
     private let startupError: String?
+    private var isSavingConfiguration = false
 
     private(set) var loadState: ApplicationLoadState = .idle
     private(set) var configuration: ClientConfiguration = .empty
+
+    private(set) var deviceKeyStatus: DeviceKeyStatus?
+    @ObservationIgnored private var unlockedDeviceKey: P256.Signing.PrivateKey?
 
     init(
         registry: ConfigurationRegistry,
@@ -76,16 +81,32 @@ final class ApplicationModel {
             throw ApplicationModelError.registryUnavailable
         }
 
-        let credentials = try await ClavironTLSCredentials(
-            certificateAuthorityFile: credentialStore.fileURL(
-                for: tlsProfile.caCertificatePath
-            ),
-            clientCertificateFile: credentialStore.fileURL(
-                for: tlsProfile.clientCertificatePath
-            ),
-            clientPrivateKeyFile: credentialStore.fileURL(
-                for: tlsProfile.clientPrivateKeyPath
-            )
+        let certificateAuthority: URL?
+        if let path = tlsProfile.caCertificatePath {
+            certificateAuthority = try await credentialStore.fileURL(for: path)
+        } else {
+            certificateAuthority = nil
+        }
+        let certificate = try await credentialStore.fileURL(for: tlsProfile.clientCertificatePath)
+        let privateKey: ClavironTLSCredentials.PrivateKey
+        if tlsProfile.clientPrivateKeyPath == CredentialStore.deviceKeyPath {
+            guard let stored = try await credentialStore.loadDeviceKey() else {
+                throw CredentialStoreError.missingDeviceKey
+            }
+            switch stored {
+            case .unencrypted:
+                privateKey = .file(try await credentialStore.fileURL(for: tlsProfile.clientPrivateKeyPath))
+            case .encrypted:
+                guard let unlockedDeviceKey else { throw DeviceKeyError.locked }
+                privateKey = .pem(Data(unlockedDeviceKey.pemRepresentation.utf8))
+            }
+        } else {
+            privateKey = .file(try await credentialStore.fileURL(for: tlsProfile.clientPrivateKeyPath))
+        }
+        let credentials = ClavironTLSCredentials(
+            certificateAuthorityFile: certificateAuthority,
+            clientCertificateFile: certificate,
+            clientPrivateKey: privateKey
         )
         return try ClavironEndpoint(
             serverAddress: server.address,
@@ -112,57 +133,96 @@ final class ApplicationModel {
         loadState = .loading
         do {
             configuration = try await registry.load()
+            try await refreshDeviceKeyStatus()
             loadState = .ready
         } catch {
             loadState = .failed(error.localizedDescription)
         }
     }
 
-    func saveInitialConfiguration(
+    private var hasDeviceKeyReferences: Bool {
+        configuration.tlsProfiles.contains {
+            $0.clientPrivateKeyPath == CredentialStore.deviceKeyPath
+        }
+    }
+
+    func refreshDeviceKeyStatus() async throws {
+        guard let credentialStore else { throw ApplicationModelError.registryUnavailable }
+        switch try await credentialStore.loadDeviceKey() {
+        case .none:
+            guard !hasDeviceKeyReferences else { throw CredentialStoreError.missingDeviceKey }
+            deviceKeyStatus = .missing
+        case .unencrypted:
+            deviceKeyStatus = .unencrypted
+        case .encrypted:
+            deviceKeyStatus = unlockedDeviceKey == nil ? .locked : .unlocked
+        }
+    }
+
+    func createDeviceKey(password: String?) async throws {
+        guard let credentialStore else { throw ApplicationModelError.registryUnavailable }
+        guard !hasDeviceKeyReferences else { throw DeviceKeyError.alreadyExists }
+        let key = try await credentialStore.createDeviceKey(password: password)
+        unlockedDeviceKey = password == nil ? nil : key
+        deviceKeyStatus = password == nil ? .unencrypted : .unlocked
+    }
+
+    func unlockDeviceKey(password: String) async throws {
+        guard let credentialStore else { throw ApplicationModelError.registryUnavailable }
+        unlockedDeviceKey = try await credentialStore.unlockDeviceKey(password: password)
+        deviceKeyStatus = .unlocked
+    }
+
+    func lockDeviceKey() {
+        unlockedDeviceKey = nil
+        deviceKeyStatus = .locked
+    }
+
+    func enrollmentKey() async throws -> P256.Signing.PrivateKey {
+        guard let credentialStore else { throw ApplicationModelError.registryUnavailable }
+        switch try await credentialStore.loadDeviceKey() {
+        case .none:
+            throw CredentialStoreError.missingDeviceKey
+        case let .unencrypted(key):
+            return key
+        case .encrypted:
+            guard let unlockedDeviceKey else { throw DeviceKeyError.locked }
+            return unlockedDeviceKey
+        }
+    }
+
+    func saveEnrollment(
         _ input: InitialConfigurationInput,
-        credentials: TLSCredentialImport,
+        username: String,
+        certificates: EnrollmentCertificates,
         serverID: ServerID = ServerID(rawValue: UUID().uuidString.lowercased()),
         tlsProfileID: TLSProfileID = TLSProfileID(rawValue: UUID().uuidString.lowercased())
     ) async throws {
-        guard let registry, let credentialStore else {
+        guard let credentialStore else {
             throw ApplicationModelError.registryUnavailable
         }
 
-        // The wizard runs both before there is any configuration and from
-        // Settings afterwards. Same inputs either way: the first run writes
-        // the whole configuration, a later run appends to it.
-        let isFirstRun = configuration.servers.isEmpty
-        let build = { (paths: TLSCredentialPaths) throws -> ClientConfiguration in
-            isFirstRun
-                ? try input.makeConfiguration(
-                    serverID: serverID,
-                    tlsProfileID: tlsProfileID,
-                    credentialPaths: paths
-                )
-                : try input.addingTo(
-                    self.configuration,
-                    serverID: serverID,
-                    tlsProfileID: tlsProfileID,
-                    credentialPaths: paths
-                )
-        }
-
-        _ = try build(.validationPlaceholder)
-        try credentials.validate()
-
-        let credentialPaths = try await credentialStore.install(
-            credentials,
-            for: tlsProfileID
+        _ = try input.addingTo(
+            configuration,
+            username: username,
+            serverID: serverID,
+            tlsProfileID: tlsProfileID,
+            credentialPaths: .validationPlaceholder
         )
-        let candidate = try build(credentialPaths)
-
+        let paths = try await credentialStore.install(certificates, for: tlsProfileID)
         do {
-            try await registry.save(candidate)
+            let candidate = try input.addingTo(
+                configuration,
+                username: username,
+                serverID: serverID,
+                tlsProfileID: tlsProfileID,
+                credentialPaths: paths
+            )
+            try await persist(candidate)
         } catch {
             try? await credentialStore.removeCredentials(for: tlsProfileID)
             throw error
         }
-        configuration = candidate
         loadState = .ready
     }
 
@@ -173,15 +233,9 @@ final class ApplicationModel {
         guard configuration.servers.contains(where: { $0.id == serverID }) else {
             throw ApplicationModelError.unknownServer(serverID)
         }
-        guard let registry else {
-            throw ApplicationModelError.registryUnavailable
-        }
-
         var candidate = configuration
         candidate.activeServerID = serverID
-        try candidate.validate()
-        try await registry.save(candidate)
-        configuration = candidate
+        try await persist(candidate)
     }
 
     func addServer(
@@ -237,48 +291,6 @@ final class ApplicationModel {
         try await persist(candidate)
     }
 
-    func addTLSProfile(
-        name: String,
-        credentials: TLSCredentialImport,
-        profileID: TLSProfileID = TLSProfileID(rawValue: UUID().uuidString.lowercased())
-    ) async throws {
-        guard let registry, let credentialStore else {
-            throw ApplicationModelError.registryUnavailable
-        }
-
-        var candidate = configuration
-        candidate.tlsProfiles.append(
-            TLSProfile(
-                id: profileID,
-                name: name,
-                caCertificatePath: TLSCredentialPaths.validationPlaceholder.caCertificatePath,
-                clientCertificatePath: TLSCredentialPaths.validationPlaceholder.clientCertificatePath,
-                clientPrivateKeyPath: TLSCredentialPaths.validationPlaceholder.clientPrivateKeyPath
-            )
-        )
-        try candidate.validate()
-        try credentials.validate()
-
-        let paths = try await credentialStore.install(credentials, for: profileID)
-        guard let index = candidate.tlsProfiles.firstIndex(
-            where: { $0.id == profileID }
-        ) else {
-            try? await credentialStore.removeCredentials(for: profileID)
-            throw ApplicationModelError.unknownTLSProfile(profileID)
-        }
-        candidate.tlsProfiles[index].caCertificatePath = paths.caCertificatePath
-        candidate.tlsProfiles[index].clientCertificatePath = paths.clientCertificatePath
-        candidate.tlsProfiles[index].clientPrivateKeyPath = paths.clientPrivateKeyPath
-
-        do {
-            try await registry.save(candidate)
-        } catch {
-            try? await credentialStore.removeCredentials(for: profileID)
-            throw error
-        }
-        configuration = candidate
-    }
-
     func updateTLSProfileName(
         _ profileID: TLSProfileID,
         name: String
@@ -331,10 +343,25 @@ final class ApplicationModel {
             throw ApplicationModelError.registryUnavailable
         }
 
+        guard !isSavingConfiguration else {
+            throw ApplicationModelError.saveInProgress
+        }
+        isSavingConfiguration = true
+        defer { isSavingConfiguration = false }
+
         try candidate.validate()
         try await registry.save(candidate)
         configuration = candidate
     }
+}
+
+enum DeviceKeyStatus: Equatable {
+    case missing
+    case unencrypted
+    case locked
+    case unlocked
+
+    var isLoaded: Bool { self == .unencrypted || self == .unlocked }
 }
 
 enum ApplicationLoadState: Equatable {
@@ -346,6 +373,7 @@ enum ApplicationLoadState: Equatable {
 
 enum ApplicationModelError: Error, Equatable, LocalizedError {
     case registryUnavailable
+    case saveInProgress
     case unknownServer(ServerID)
     case unknownTLSProfile(TLSProfileID)
     case tlsProfileInUse(TLSProfileID, serverNames: [String])
@@ -355,6 +383,8 @@ enum ApplicationModelError: Error, Equatable, LocalizedError {
         switch self {
         case .registryUnavailable:
             "The configuration registry is unavailable."
+        case .saveInProgress:
+            "Another configuration change is being saved. Try again."
         case let .unknownServer(serverID):
             "Server '\(serverID.rawValue)' is not saved."
         case let .unknownTLSProfile(profileID):

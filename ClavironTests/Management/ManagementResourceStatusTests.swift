@@ -144,7 +144,7 @@ struct ManagementResourceStatusTests {
     @Test
     func taskKindsUseDistinctIcons() {
         #expect(TaskKindObservation.builtin.assetImage == "TaskIconRust")
-        #expect(TaskKindObservation.php.assetImage == "TaskIconPHP")
+        #expect(TaskKindObservation.php.assetImage == "PHP")
         #expect(TaskKindObservation.js.assetImage == "TaskIconJavaScript")
         #expect(TaskKindObservation.lua.assetImage == "TaskIconLua")
         #expect(TaskKindObservation.command.systemImage == "terminal")
@@ -163,7 +163,7 @@ struct ManagementResourceStatusTests {
         let custom = ApplicationRuntimePresentation("custom")
 
         #expect(php.title == "PHP")
-        #expect(php.assetImage == "TaskIconPHP")
+        #expect(php.assetImage == "PHP")
         #expect(javascript.title == "JavaScript")
         #expect(javascript.assetImage == "TaskIconJavaScript")
         #expect(lua.title == "Lua")
@@ -182,10 +182,12 @@ struct ManagementResourceStatusTests {
         let branded = ApplicationIconPresentation("fastapi", runtime: "python")
         #expect(branded.assetImage == "FrameworkIconFastAPI")
         #expect(branded.title == "Python")
+        #expect(ApplicationIconPresentation("axum", runtime: "rust").assetImage == "FrameworkIconAxum")
+        #expect(ApplicationIconPresentation("warp", runtime: "rust").assetImage == "FrameworkIconWarp")
         let generic = ApplicationIconPresentation("server", runtime: "php")
         #expect(generic.assetImage == nil)
         #expect(generic.systemImage == "server.rack")
-        #expect(ApplicationIconPresentation("unknown", runtime: "php").assetImage == "TaskIconPHP")
+        #expect(ApplicationIconPresentation("unknown", runtime: "php").assetImage == "PHP")
         #expect(ApplicationIconPresentation(nil, runtime: "python").assetImage == "TaskIconPython")
     }
 

@@ -1,18 +1,35 @@
 import Foundation
 
 public struct ClavironTLSCredentials: Equatable, Sendable {
-    public let certificateAuthorityFile: URL
+    public enum PrivateKey: Equatable, Sendable {
+        case file(URL)
+        case pem(Data)
+    }
+
+    public let certificateAuthorityFile: URL?
     public let clientCertificateFile: URL
-    public let clientPrivateKeyFile: URL
+    public let clientPrivateKey: PrivateKey
 
     public init(
-        certificateAuthorityFile: URL,
+        certificateAuthorityFile: URL?,
         clientCertificateFile: URL,
         clientPrivateKeyFile: URL
     ) {
+        self.init(
+            certificateAuthorityFile: certificateAuthorityFile,
+            clientCertificateFile: clientCertificateFile,
+            clientPrivateKey: .file(clientPrivateKeyFile)
+        )
+    }
+
+    public init(
+        certificateAuthorityFile: URL?,
+        clientCertificateFile: URL,
+        clientPrivateKey: PrivateKey
+    ) {
         self.certificateAuthorityFile = certificateAuthorityFile
         self.clientCertificateFile = clientCertificateFile
-        self.clientPrivateKeyFile = clientPrivateKeyFile
+        self.clientPrivateKey = clientPrivateKey
     }
 }
 

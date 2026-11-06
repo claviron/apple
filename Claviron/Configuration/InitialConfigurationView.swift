@@ -5,7 +5,7 @@ struct InitialConfigurationView: View {
 
     @State private var step: InitialConfigurationStep
     @State private var input: InitialConfigurationInput
-    @State private var credentials: TLSCredentialImport
+    @State private var enrollment = EnrollmentInput()
     @State private var isSaving = false
     @State private var errorMessage: String?
 
@@ -16,16 +16,14 @@ struct InitialConfigurationView: View {
 
     init(
         applicationModel: ApplicationModel,
-        initialStep: InitialConfigurationStep = .welcome,
+        initialStep: InitialConfigurationStep = .key,
         input: InitialConfigurationInput = InitialConfigurationInput(),
-        credentials: TLSCredentialImport = TLSCredentialImport(),
         cancel: (() -> Void)? = nil
     ) {
         self.applicationModel = applicationModel
         self.cancel = cancel
         _step = State(initialValue: initialStep)
         _input = State(initialValue: input)
-        _credentials = State(initialValue: credentials)
     }
 
     var body: some View {
@@ -34,13 +32,14 @@ struct InitialConfigurationView: View {
                 progressHeader
                 Divider()
                 stepContent
+                    .disabled(isSaving)
                 Divider()
                 navigationControls
             }
             .navigationTitle(step.title)
         }
         .alert(
-            "Configuration Not Saved",
+            "Setup Could Not Continue",
             isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
@@ -77,8 +76,8 @@ struct InitialConfigurationView: View {
     @ViewBuilder
     private var stepContent: some View {
         switch step {
-        case .welcome:
-            welcomeStep
+        case .key:
+            keyStep
         case .server:
             serverStep
         case .identity:
@@ -88,20 +87,12 @@ struct InitialConfigurationView: View {
         }
     }
 
-    private var welcomeStep: some View {
+    private var keyStep: some View {
         Form {
             Section {
-                Label("Connect directly to your Claviron management server.", systemImage: "server.rack")
-                Label("Authenticate with your existing mutual TLS files.", systemImage: "lock.shield")
-                Label("Keep server configuration and credentials in this app's private storage.", systemImage: "externaldrive.badge.checkmark")
-            } header: {
-                Text("Native Claviron Management")
+                DeviceKeyView(applicationModel: applicationModel, allowsCreation: true)
             } footer: {
-                Text("The app uses gRPC directly. It does not run the Claviron command-line client.")
-            }
-
-            Section {
-                Link("Learn more at claviron.app", destination: URL(string: "https://claviron.app")!)
+                Text("This device uses the same key to register with different servers.")
             }
         }
         .formStyle(.grouped)
@@ -109,17 +100,19 @@ struct InitialConfigurationView: View {
 
     private var serverStep: some View {
         Form {
-            Section("Claviron Server") {
-                TextField("Name", text: $input.serverName)
-                    .textContentType(.organizationName)
-                TextField("HTTPS address", text: $input.serverAddress)
-                    .textContentType(.URL)
-                    .autocorrectionDisabled()
-            }
-
             Section {
-                Text("Use the HTTPS origin of the management server, including its port when it is not 443.")
-                    .foregroundStyle(.secondary)
+                SetupField(
+                    "Server name", text: $input.serverName,
+                    prompt: "Example Server", contentType: .organizationName
+                )
+                SetupField(
+                    "Registration HTTPS address", text: $enrollment.address,
+                    prompt: "https://register.example.com", contentType: .URL
+                )
+            } header: {
+                Text("Claviron Server")
+            } footer: {
+                Text("Use the registration address. Claviron receives the management address after registration.")
             }
         }
         .formStyle(.grouped)
@@ -128,15 +121,15 @@ struct InitialConfigurationView: View {
     private var identityStep: some View {
         Form {
             Section {
-                TextField("TLS profile name", text: $input.tlsProfileName)
-                CredentialImportFields(
-                    credentials: $credentials,
-                    errorMessage: $errorMessage
+                SetupField("Username", text: $enrollment.username, contentType: .username)
+                SetupField(
+                    "Account password", text: $enrollment.password,
+                    isSecure: true, contentType: .password
                 )
             } header: {
                 Text("Mutual TLS Identity")
             } footer: {
-                Text("Choose the CA certificate, client certificate, and matching private key. The files are copied into Claviron's private application storage.")
+                Text("Your private key stays on this device.")
             }
         }
         .formStyle(.grouped)
@@ -146,21 +139,20 @@ struct InitialConfigurationView: View {
         Form {
             Section("Server") {
                 LabeledContent("Name", value: input.serverName)
-                LabeledContent("Address", value: input.serverAddress)
+                LabeledContent("Registration address", value: enrollment.address)
             }
 
             Section("Mutual TLS") {
-                LabeledContent("Profile", value: input.tlsProfileName)
-                ForEach(TLSCredentialRole.allCases, id: \.self) { role in
-                    LabeledContent(
-                        role.title,
-                        value: credentials[role]?.fileName ?? "Missing"
+                LabeledContent(
+                    "Profile",
+                    value: TLSProfile.identityName(
+                        username: enrollment.username, serverName: input.serverName
                     )
-                }
+                )
             }
 
             Section {
-                Text("Saving creates the first server, makes it active, and stores private copies of the selected TLS files. You can add more servers and shared TLS profiles later in Settings.")
+                Text("Saving stores the TLS identity in Claviron's private storage and adds the server to Settings.")
                     .foregroundStyle(.secondary)
             }
         }
@@ -193,17 +185,31 @@ struct InitialConfigurationView: View {
                     ProgressView()
                         .controlSize(.small)
                 } else {
-                    Text(step == .review ? "Save and Continue" : "Continue")
+                    Text(continueTitle)
                 }
             }
             .buttonStyle(.borderedProminent)
             .keyboardShortcut(.defaultAction)
             .disabled(
                 isSaving
-                    || !step.canContinue(input: input, credentials: credentials)
+                    || !step.canContinue(
+                        input: input, enrollment: enrollment, hasLoadedKey: hasLoadedKey
+                    )
             )
         }
         .padding()
+    }
+
+    private var hasLoadedKey: Bool {
+        applicationModel.deviceKeyStatus?.isLoaded == true
+    }
+
+    private var continueTitle: String {
+        switch step {
+        case .server: "Check Server"
+        case .review: "Save and Continue"
+        default: "Continue"
+        }
     }
 
     private func goBack() {
@@ -215,14 +221,32 @@ struct InitialConfigurationView: View {
 
     private func advanceOrSave() {
         do {
-            try step.validate(input: input, credentials: credentials)
-            if step == .review {
+            try step.validate(
+                input: input, enrollment: enrollment, hasLoadedKey: hasLoadedKey
+            )
+            switch step {
+            case .server:
+                checkServer()
+            case .review:
                 save()
-            } else if let next = step.next {
-                step = next
+            case .key, .identity:
+                if let next = step.next { step = next }
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func checkServer() {
+        isSaving = true
+        Task {
+            defer { isSaving = false }
+            do {
+                try await Enrollment.probe(enrollment)
+                step = .identity
+            } catch {
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
@@ -234,10 +258,14 @@ struct InitialConfigurationView: View {
             }
 
             do {
-                try await applicationModel.saveInitialConfiguration(
-                    input,
-                    credentials: credentials
+                let key = try await applicationModel.enrollmentKey()
+                let registered = try await Enrollment.issue(enrollment, key: key)
+                var profile = input
+                profile.serverAddress = registered.managementAddress
+                try await applicationModel.saveEnrollment(
+                    profile, username: enrollment.username, certificates: registered.certificates
                 )
+                enrollment.password = ""
                 cancel?()
             } catch {
                 errorMessage = error.localizedDescription

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ConfigurationView: View {
     @Bindable var applicationModel: ApplicationModel
+    var connectionModel: ConnectionModel?
     @AppStorage(AppAppearance.storageKey) private var storedAppearance = AppAppearance.system.rawValue
 
     @State private var editor: ConfigurationEditor?
@@ -28,15 +29,15 @@ struct ConfigurationView: View {
                 .disabled(applicationModel.configuration.tlsProfiles.isEmpty)
             }
 
+            Section("Device Key") {
+                DeviceKeyView(applicationModel: applicationModel) {
+                    await connectionModel?.disconnectDeviceKeySessions()
+                }
+            }
+
             Section("TLS Profiles") {
                 ForEach(applicationModel.configuration.tlsProfiles) { profile in
                     tlsProfileRow(profile)
-                }
-
-                Button {
-                    editor = .addTLSProfile
-                } label: {
-                    Label("Add TLS Profile", systemImage: "plus.circle.fill")
                 }
             }
 
@@ -221,8 +222,6 @@ struct ConfigurationView: View {
                     existingServer: server
                 )
             }
-        case .addTLSProfile:
-            TLSProfileEditorView(applicationModel: applicationModel)
         case let .editTLSProfile(profileID):
             if let profile = applicationModel.configuration.tlsProfiles.first(
                 where: { $0.id == profileID }
@@ -362,7 +361,6 @@ private struct AppearancePreview: View {
 private enum ConfigurationEditor: Identifiable {
     case addServer
     case editServer(ServerID)
-    case addTLSProfile
     case editTLSProfile(TLSProfileID)
 
     var id: String {
@@ -371,8 +369,6 @@ private enum ConfigurationEditor: Identifiable {
             "add-server"
         case let .editServer(serverID):
             "edit-server-\(serverID.rawValue)"
-        case .addTLSProfile:
-            "add-tls-profile"
         case let .editTLSProfile(profileID):
             "edit-tls-profile-\(profileID.rawValue)"
         }

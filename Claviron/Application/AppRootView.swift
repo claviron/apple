@@ -9,6 +9,8 @@ struct AppRootView: View {
             switch applicationModel.loadState {
             case .idle, .loading:
                 ProgressView("Loading configuration…")
+            case .ready where applicationModel.deviceKeyStatus == .locked:
+                DeviceKeyUnlockView(applicationModel: applicationModel)
             case .ready where applicationModel.needsInitialConfiguration:
                 InitialConfigurationView(applicationModel: applicationModel)
             case .ready:

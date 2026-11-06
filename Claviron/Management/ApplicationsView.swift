@@ -536,7 +536,7 @@ struct ApplicationRuntimePresentation {
     var assetImage: String? {
         switch normalizedRuntime {
         case "php":
-            "TaskIconPHP"
+            "PHP"
         case "js", "javascript":
             "TaskIconJavaScript"
         case "lua":

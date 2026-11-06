@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Testing
 @testable import Claviron
@@ -7,11 +8,12 @@ struct CredentialStoreTests {
     func credentialsAreCopiedIntoPrivateApplicationStorage() async throws {
         try await withTemporaryStore { store, rootDirectoryURL in
             let profileID = TLSProfileID(rawValue: "operator")
+            _ = try await store.createDeviceKey(password: nil)
             let paths = try await store.install(.valid, for: profileID)
 
             #expect(paths.caCertificatePath == "Credentials/operator/ca.pem")
             #expect(paths.clientCertificatePath == "Credentials/operator/client.pem")
-            #expect(paths.clientPrivateKeyPath == "Credentials/operator/client-key.pem")
+            #expect(paths.clientPrivateKeyPath == CredentialStore.deviceKeyPath)
 
             for (role, expected) in expectedCredentialData {
                 let relativePath = "Credentials/operator/\(role.storedFileName)"
@@ -28,21 +30,34 @@ struct CredentialStoreTests {
     }
 
     @Test
-    func incompleteImportDoesNotCreateProfileDirectory() async throws {
+    func profilesShareTheSameDeviceKeyAcrossStoreInstances() async throws {
         try await withTemporaryStore { store, rootDirectoryURL in
-            let profileID = TLSProfileID(rawValue: "incomplete")
-            var credentials = TLSCredentialImport.valid
-            credentials.clientPrivateKey = nil
-
-            await #expect(throws: CredentialStoreError.missingCredential(
-                .clientPrivateKey
-            )) {
-                try await store.install(credentials, for: profileID)
+            let key = try await store.createDeviceKey(password: nil)
+            let first = TLSProfileID(rawValue: "first")
+            let firstPaths = try await store.install(.valid, for: first)
+            let reopened = CredentialStore(rootDirectoryURL: rootDirectoryURL)
+            guard case let .unencrypted(reusedKey)? = try await reopened.loadDeviceKey() else {
+                Issue.record("Expected the saved device key")
+                return
             }
+            let secondPaths = try await reopened.install(.valid, for: TLSProfileID(rawValue: "second"))
+            #expect(key.publicKey.derRepresentation == reusedKey.publicKey.derRepresentation)
+            #expect(firstPaths.clientPrivateKeyPath == secondPaths.clientPrivateKeyPath)
+            #expect(firstPaths.clientCertificatePath != secondPaths.clientCertificatePath)
+            #expect(firstPaths.caCertificatePath != secondPaths.caCertificatePath)
 
-            let profileURL = rootDirectoryURL
-                .appendingPathComponent("Credentials/incomplete", isDirectory: true)
-            #expect(!FileManager.default.fileExists(atPath: profileURL.path))
+            try await reopened.removeCredentials(for: first)
+            guard case let .unencrypted(retainedKey)? = try await reopened.loadDeviceKey() else {
+                Issue.record("Deleting a TLS profile removed its shared device key")
+                return
+            }
+            #expect(key.publicKey.derRepresentation == retainedKey.publicKey.derRepresentation)
+            let url = try await reopened.fileURL(for: secondPaths.clientPrivateKeyPath)
+            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+            #expect(attributes[.posixPermissions] as? Int == 0o600)
+
+            try FileManager.default.removeItem(at: url)
+            #expect(try await reopened.loadDeviceKey() == nil)
         }
     }
 
@@ -50,6 +65,7 @@ struct CredentialStoreTests {
     func existingProfileIsNeverOverwritten() async throws {
         try await withTemporaryStore { store, _ in
             let profileID = TLSProfileID(rawValue: "operator")
+            _ = try await store.createDeviceKey(password: nil)
             _ = try await store.install(.valid, for: profileID)
 
             await #expect(throws: CredentialStoreError.profileAlreadyExists(profileID)) {
@@ -71,6 +87,7 @@ struct CredentialStoreTests {
     func profileIDCannotEscapeCredentialStorage() async throws {
         try await withTemporaryStore { store, _ in
             let profileID = TLSProfileID(rawValue: "../outside")
+            _ = try await store.createDeviceKey(password: nil)
 
             await #expect(throws: CredentialStoreError.unsafeProfileID(profileID)) {
                 try await store.install(.valid, for: profileID)
@@ -82,7 +99,6 @@ struct CredentialStoreTests {
         [
             (.certificateAuthority, Data("ca".utf8)),
             (.clientCertificate, Data("certificate".utf8)),
-            (.clientPrivateKey, Data("private key".utf8)),
         ]
     }
 

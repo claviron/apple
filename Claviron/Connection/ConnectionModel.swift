@@ -1046,14 +1046,36 @@ final class ConnectionModel {
         }
     }
 
+    func disconnectDeviceKeySessions() async {
+        let profileIDs = Set(applicationModel.configuration.tlsProfiles.lazy
+            .filter { $0.clientPrivateKeyPath == CredentialStore.deviceKeyPath }
+            .map(\.id))
+        var serverIDs = Set(applicationModel.configuration.servers.lazy
+            .filter { profileIDs.contains($0.tlsProfileID) }
+            .map(\.id))
+        for (id, endpoint) in clientEndpoints {
+            if case .pem = endpoint.credentials.clientPrivateKey {
+                serverIDs.insert(id)
+            }
+        }
+        let detached = serverIDs.compactMap { detachConnection($0) }
+        for client in detached {
+            await client.disconnect()
+        }
+    }
+
     func disconnect(_ serverID: ServerID) async {
+        await detachConnection(serverID)?.disconnect()
+    }
+
+    private func detachConnection(_ serverID: ServerID) -> (any ClavironClient)? {
         operationIDs[serverID] = UUID()
         let client = clients.removeValue(forKey: serverID)
         managementSessionIDs[serverID] = nil
         clientEndpoints[serverID] = nil
         states[serverID] = .disconnected
         resetResourceObservations(for: serverID)
-        await client?.disconnect()
+        return client
     }
 
     func managementSessionID(for serverID: ServerID) -> UUID? {

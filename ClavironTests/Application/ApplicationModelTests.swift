@@ -1,3 +1,5 @@
+import ClavironControlPlane
+import CryptoKit
 import Foundation
 import Testing
 @testable import Claviron
@@ -12,9 +14,11 @@ struct ApplicationModelTests {
 
             let serverID = ServerID(rawValue: "primary")
             let tlsProfileID = TLSProfileID(rawValue: "operator")
-            try await model.saveInitialConfiguration(
+            try await model.createDeviceKey(password: nil)
+            try await model.saveEnrollment(
                 .valid,
-                credentials: .valid,
+                username: "operator",
+                certificates: .valid,
                 serverID: serverID,
                 tlsProfileID: tlsProfileID
             )
@@ -24,10 +28,72 @@ struct ApplicationModelTests {
             #expect(try await registry.load() == model.configuration)
 
             let profile = try #require(model.configuration.tlsProfiles.first)
+            #expect(profile.username == "operator")
             let credentialURL = registry.fileURL
                 .deletingLastPathComponent()
                 .appendingPathComponent(profile.clientPrivateKeyPath)
             #expect(FileManager.default.fileExists(atPath: credentialURL.path))
+        }
+    }
+
+    @Test
+    func enrollmentRequiresExplicitKeyCreationAndUnlock() async throws {
+        try await withTemporaryModel { model, registry in
+            await model.loadIfNeeded()
+            try await model.refreshDeviceKeyStatus()
+            #expect(model.deviceKeyStatus == .missing)
+            await #expect(throws: CredentialStoreError.missingDeviceKey) {
+                try await model.enrollmentKey()
+            }
+            try await model.refreshDeviceKeyStatus()
+            #expect(model.deviceKeyStatus == .missing)
+
+            try await model.createDeviceKey(password: "test key passphrase")
+            #expect(model.deviceKeyStatus == .unlocked)
+            let key = try await model.enrollmentKey()
+            let storedKey = registry.fileURL.deletingLastPathComponent()
+                .appending(path: CredentialStore.deviceKeyPath)
+            #expect(PrivateKeyProtection.isEncrypted(try String(contentsOf: storedKey, encoding: .utf8)))
+
+            let serverID = ServerID(rawValue: "protected")
+            try await model.saveEnrollment(.valid, username: "operator", certificates: .valid, serverID: serverID)
+            let endpoint = try await model.endpoint(for: serverID)
+            #expect(endpoint.credentials.clientPrivateKey == .pem(Data(key.pemRepresentation.utf8)))
+
+            model.lockDeviceKey()
+            await #expect(throws: DeviceKeyError.locked) {
+                try await model.endpoint(for: serverID)
+            }
+            await #expect(throws: DeviceKeyError.locked) {
+                try await model.enrollmentKey()
+            }
+            await #expect(throws: DeviceKeyError.incorrectPassword) {
+                try await model.unlockDeviceKey(password: "incorrect")
+            }
+            try await model.unlockDeviceKey(password: "test key passphrase")
+            let reopened = try await model.enrollmentKey()
+            #expect(key.publicKey.derRepresentation == reopened.publicKey.derRepresentation)
+        }
+    }
+
+    @Test
+    func encryptedKeyIsLockedWhenConfigurationBecomesReady() async throws {
+        try await withTemporaryModel { model, registry in
+            await model.loadIfNeeded()
+            try await model.createDeviceKey(password: "test key passphrase")
+            try await model.saveEnrollment(.valid, username: "operator", certificates: .valid)
+
+            let reopened = ApplicationModel(registry: registry)
+            await reopened.loadIfNeeded()
+            #expect(reopened.loadState == .ready)
+            #expect(reopened.deviceKeyStatus == .locked)
+            await #expect(throws: DeviceKeyError.incorrectPassword) {
+                try await reopened.unlockDeviceKey(password: "incorrect")
+            }
+            #expect(reopened.deviceKeyStatus == .locked)
+            try await reopened.unlockDeviceKey(password: "test key passphrase")
+            #expect(reopened.deviceKeyStatus == .unlocked)
+            #expect(reopened.configuration == model.configuration)
         }
     }
 
@@ -56,7 +122,8 @@ struct ApplicationModelTests {
             let profileCount = model.configuration.tlsProfiles.count
             let activeBefore = model.configuration.activeServerID
 
-            try await model.saveInitialConfiguration(.valid, credentials: .valid)
+            try await model.createDeviceKey(password: nil)
+            try await model.saveEnrollment(.valid, username: "operator", certificates: .valid)
 
             #expect(model.configuration.servers.count == serverCount + 1)
             #expect(model.configuration.tlsProfiles.count == profileCount + 1)
@@ -97,11 +164,8 @@ struct ApplicationModelTests {
             let activeServerID = try #require(model.configuration.activeServerID)
             let profileID = TLSProfileID(rawValue: "secondary-identity")
 
-            try await model.addTLSProfile(
-                name: "Secondary Identity",
-                credentials: .valid,
-                profileID: profileID
-            )
+            try await model.createDeviceKey(password: nil)
+            try await model.saveEnrollment(.valid, username: "operator", certificates: .valid, tlsProfileID: profileID)
             try await model.addServer(
                 name: "Development",
                 address: "https://development.example.com:7443",
@@ -111,6 +175,15 @@ struct ApplicationModelTests {
 
             #expect(model.configuration.activeServerID == activeServerID)
             #expect(model.configuration.servers.last?.tlsProfileID == profileID)
+            let development = try #require(model.configuration.servers.last)
+            #expect(model.configuration.connectionName(for: development) == "operator@Development")
+            let active = try #require(model.activeServer)
+            #expect(model.configuration.connectionName(for: active) == active.name)
+            try await model.updateServer(
+                active.id, name: active.name, address: active.address, tlsProfileID: profileID
+            )
+            let updated = try #require(model.activeServer)
+            #expect(model.configuration.connectionName(for: updated) == "operator@\(updated.name)")
         }
     }
 
@@ -165,11 +238,12 @@ struct ApplicationModelTests {
         try await withTemporaryModel(configuration: TestConfiguration.valid) { model, registry in
             await model.loadIfNeeded()
             let profileID = TLSProfileID(rawValue: "temporary")
-            try await model.addTLSProfile(
-                name: "Temporary",
-                credentials: .valid,
-                profileID: profileID
+            let serverID = ServerID(rawValue: "temporary-server")
+            try await model.createDeviceKey(password: nil)
+            try await model.saveEnrollment(
+                .valid, username: "operator", certificates: .valid, serverID: serverID, tlsProfileID: profileID
             )
+            try await model.removeServer(serverID)
             try await model.updateTLSProfileName(profileID, name: "Renamed")
             #expect(model.configuration.tlsProfiles.first {
                 $0.id == profileID
@@ -211,24 +285,13 @@ struct ApplicationModelTests {
 private extension InitialConfigurationInput {
     static let valid = InitialConfigurationInput(
         serverName: "Production",
-        serverAddress: "https://control.example.com:7443",
-        tlsProfileName: "Operator"
+        serverAddress: "https://control.example.com:7443"
     )
 }
 
-extension TLSCredentialImport {
-    static let valid = TLSCredentialImport(
-        certificateAuthority: ImportedCredential(
-            fileName: "ca.pem",
-            data: Data("ca".utf8)
-        ),
-        clientCertificate: ImportedCredential(
-            fileName: "client.pem",
-            data: Data("certificate".utf8)
-        ),
-        clientPrivateKey: ImportedCredential(
-            fileName: "client-key.pem",
-            data: Data("private key".utf8)
-        )
+extension EnrollmentCertificates {
+    static let valid = EnrollmentCertificates(
+        clientChainPEM: Data("certificate".utf8),
+        authorityPEM: Data("ca".utf8)
     )
 }
