@@ -20,6 +20,51 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
+/// How the CA validates control of the names. Unset is the server's default,
+/// `acme.method` in its configuration. A method the server cannot use is
+/// refused before an order is placed.
+nonisolated enum Claviron_Acme_ChallengeMethod: SwiftProtobuf.Enum, Swift.CaseIterable {
+  typealias RawValue = Int
+  case `default` // = 0
+  case http01 // = 1
+  case dns01 // = 2
+  case tlsAlpn01 // = 3
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .default
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .default
+    case 1: self = .http01
+    case 2: self = .dns01
+    case 3: self = .tlsAlpn01
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .default: return 0
+    case .http01: return 1
+    case .dns01: return 2
+    case .tlsAlpn01: return 3
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static let allCases: [Claviron_Acme_ChallengeMethod] = [
+    .default,
+    .http01,
+    .dns01,
+    .tlsAlpn01,
+  ]
+
+}
+
 nonisolated enum Claviron_Acme_CertificateKind: SwiftProtobuf.Enum, Swift.CaseIterable {
   typealias RawValue = Int
   case unspecified // = 0
@@ -70,6 +115,8 @@ nonisolated struct Claviron_Acme_AddCertificateRequest: Sendable {
 
   /// multiple alias names first will be cn
   var aliases: [String] = []
+
+  var method: Claviron_Acme_ChallengeMethod = .default
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -146,8 +193,10 @@ nonisolated struct Claviron_Acme_RenewCertificateRequest: Sendable {
 
   var cn: String = String()
 
-  var renewBefore: Int64 {
-    get {_renewBefore ?? 0}
+  /// Renew only when the certificate expires within this long; unset is the
+  /// server's configured `renew_before`.
+  var renewBefore: SwiftProtobuf.Google_Protobuf_Duration {
+    get {_renewBefore ?? SwiftProtobuf.Google_Protobuf_Duration()}
     set {_renewBefore = newValue}
   }
   /// Returns true if `renewBefore` has been explicitly set.
@@ -155,11 +204,13 @@ nonisolated struct Claviron_Acme_RenewCertificateRequest: Sendable {
   /// Clears the value of `renewBefore`. Subsequent reads from it will return its default value.
   mutating func clearRenewBefore() {self._renewBefore = nil}
 
+  var method: Claviron_Acme_ChallengeMethod = .default
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _renewBefore: Int64? = nil
+  fileprivate var _renewBefore: SwiftProtobuf.Google_Protobuf_Duration? = nil
 }
 
 /// Certificate response
@@ -439,13 +490,17 @@ nonisolated struct Claviron_Acme_ListServersResponse: Sendable {
 
 fileprivate nonisolated let _protobuf_package = "claviron.acme"
 
+nonisolated extension Claviron_Acme_ChallengeMethod: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0CHALLENGE_METHOD_DEFAULT\0\u{1}CHALLENGE_METHOD_HTTP_01\0\u{1}CHALLENGE_METHOD_DNS_01\0\u{1}CHALLENGE_METHOD_TLS_ALPN_01\0")
+}
+
 nonisolated extension Claviron_Acme_CertificateKind: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0CERTIFICATE_KIND_UNSPECIFIED\0\u{1}CERTIFICATE_KIND_SERVER\0\u{1}CERTIFICATE_KIND_CLIENT\0\u{1}CERTIFICATE_KIND_CA\0")
 }
 
 nonisolated extension Claviron_Acme_AddCertificateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".AddCertificateRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}aliases\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}aliases\0\u{1}method\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -454,6 +509,7 @@ nonisolated extension Claviron_Acme_AddCertificateRequest: SwiftProtobuf.Message
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedStringField(value: &self.aliases) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.method) }()
       default: break
       }
     }
@@ -463,11 +519,15 @@ nonisolated extension Claviron_Acme_AddCertificateRequest: SwiftProtobuf.Message
     if !self.aliases.isEmpty {
       try visitor.visitRepeatedStringField(value: self.aliases, fieldNumber: 1)
     }
+    if self.method != .default {
+      try visitor.visitSingularEnumField(value: self.method, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Claviron_Acme_AddCertificateRequest, rhs: Claviron_Acme_AddCertificateRequest) -> Bool {
     if lhs.aliases != rhs.aliases {return false}
+    if lhs.method != rhs.method {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -574,7 +634,7 @@ nonisolated extension Claviron_Acme_UpdateCertificateRequest: SwiftProtobuf.Mess
 
 nonisolated extension Claviron_Acme_RenewCertificateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".RenewCertificateRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}cn\0\u{3}renew_before\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}cn\0\u{4}\u{2}renew_before\0\u{1}method\0\u{c}\u{2}\u{1}")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -583,7 +643,8 @@ nonisolated extension Claviron_Acme_RenewCertificateRequest: SwiftProtobuf.Messa
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.cn) }()
-      case 2: try { try decoder.decodeSingularInt64Field(value: &self._renewBefore) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._renewBefore) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.method) }()
       default: break
       }
     }
@@ -598,14 +659,18 @@ nonisolated extension Claviron_Acme_RenewCertificateRequest: SwiftProtobuf.Messa
       try visitor.visitSingularStringField(value: self.cn, fieldNumber: 1)
     }
     try { if let v = self._renewBefore {
-      try visitor.visitSingularInt64Field(value: v, fieldNumber: 2)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     } }()
+    if self.method != .default {
+      try visitor.visitSingularEnumField(value: self.method, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Claviron_Acme_RenewCertificateRequest, rhs: Claviron_Acme_RenewCertificateRequest) -> Bool {
     if lhs.cn != rhs.cn {return false}
     if lhs._renewBefore != rhs._renewBefore {return false}
+    if lhs.method != rhs.method {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -102,17 +102,13 @@ struct InitialConfigurationView: View {
         Form {
             Section {
                 SetupField(
-                    "Server name", text: $input.serverName,
-                    prompt: "Example Server", contentType: .organizationName
-                )
-                SetupField(
-                    "Registration HTTPS address", text: $enrollment.address,
-                    prompt: "https://register.example.com", contentType: .URL
+                    "Enroll address", text: $enrollment.address,
+                    prompt: "https://enroll.example.com", contentType: .URL
                 )
             } header: {
                 Text("Claviron Server")
             } footer: {
-                Text("Use the registration address. Claviron receives the management address after registration.")
+                Text("The server answers with its name and its management address.")
             }
         }
         .formStyle(.grouped)
@@ -126,10 +122,11 @@ struct InitialConfigurationView: View {
                     "Account password", text: $enrollment.password,
                     isSecure: true, contentType: .password
                 )
+                SetupField("Device", text: $enrollment.device, prompt: "laptop-app")
             } header: {
                 Text("Mutual TLS Identity")
             } footer: {
-                Text("Your private key stays on this device.")
+                Text("Your private key stays on this device. Each device has a certificate of its own, named after it.")
             }
         }
         .formStyle(.grouped)
@@ -138,17 +135,12 @@ struct InitialConfigurationView: View {
     private var reviewStep: some View {
         Form {
             Section("Server") {
-                LabeledContent("Name", value: input.serverName)
-                LabeledContent("Registration address", value: enrollment.address)
+                LabeledContent("Enroll address", value: enrollment.address)
             }
 
             Section("Mutual TLS") {
-                LabeledContent(
-                    "Profile",
-                    value: TLSProfile.identityName(
-                        username: enrollment.username, serverName: input.serverName
-                    )
-                )
+                LabeledContent("Username", value: enrollment.username)
+                LabeledContent("Device", value: enrollment.device)
             }
 
             Section {
@@ -261,6 +253,7 @@ struct InitialConfigurationView: View {
                 let key = try await applicationModel.enrollmentKey()
                 let registered = try await Enrollment.issue(enrollment, key: key)
                 var profile = input
+                profile.serverName = registered.serverName
                 profile.serverAddress = registered.managementAddress
                 try await applicationModel.saveEnrollment(
                     profile, username: enrollment.username, certificates: registered.certificates

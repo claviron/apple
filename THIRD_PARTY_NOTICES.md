@@ -24,13 +24,14 @@ subject to the [Python Software Foundation's trademark policy](https://www.pytho
 ## Framework and ecosystem marks
 
 The Laravel, Symfony, FastAPI, Flask, NestJS, Node.js, TypeScript,
-React, Vue, Svelte, Astro, Nuxt, PHP, Java, Kotlin, Flutter and Prometheus SVGs were sourced from the Zonalogo
+React, Vue, Svelte, Astro, Nuxt, PHP, Java, Kotlin, C++, Flutter and Prometheus SVGs were sourced from the Zonalogo
 collection. [Zonalogo's attribution notice](https://zonalogo.com/about)
 identifies the respective brands as the owners of those assets.
 
 The supplied macOS, Linux, Django, Spring, Tomcat and Apache SVGs identify
 SVG Repo as their source. FreeBSD and the alternate Tux artwork were supplied
-as transparent PNGs. PHP omits its rectangular backdrop and uses a lighter
+as transparent PNGs. The C SVG adapts the C++ one,
+without its plus signs and in the colors of Icons8's C Programming icon. PHP omits its rectangular backdrop and uses a lighter
 purple in dark mode; Apache uses white in dark mode.
 
 Astro's bundled variant omits embedded bitmap fills and adapts its upper

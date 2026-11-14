@@ -16,6 +16,8 @@ struct ApplicationIconPresentation {
     var assetImage: String? {
         switch code {
         case "php": "PHP"
+        case "c": "C"
+        case "c++", "cpp": "Cpp"
         case "go", "golang": "Go"
         case "frankenphp", "franken": "FrankenPHP"
         case "java": "Java"

@@ -39,6 +39,16 @@ struct AddCertificateSheet: View {
                 alternatePrompt: "www.example.com",
                 showsAlternates: true
             )
+            Section {
+                Picker("Challenge", selection: $draft.method) {
+                    Text("Server default").tag(ACMEChallengeMethod?.none)
+                    ForEach(ACMEChallengeMethod.allCases) { method in
+                        Text(verbatim: method.rawValue).tag(Optional(method))
+                    }
+                }
+            } footer: {
+                Text("How the CA checks the names. The server refuses a method it cannot use.")
+            }
         }
         .onChange(of: draft) {
             draft.expandSeparatedNames()
@@ -621,6 +631,8 @@ private extension View {
 nonisolated struct CertificateDraft: Equatable, Sendable {
     var commonName = ""
     var alternates: [String] = []
+    /// How the CA validates the names; `nil` is the server's default.
+    var method: ACMEChallengeMethod?
 
     /// Every hostname, common name first, without blanks or repeats.
     var hostnames: [String] {
@@ -659,7 +671,7 @@ nonisolated struct CertificateDraft: Equatable, Sendable {
         guard !commonName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return nil
         }
-        return .add(hostnames: hostnames)
+        return .add(hostnames: hostnames, method: method)
     }
 }
 

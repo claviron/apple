@@ -1009,6 +1009,20 @@ final class ConnectionModel {
         return receipt
     }
 
+    func loadCertificateChain(for certificate: CertificateObservation, on serverID: ServerID) async throws -> String {
+        if clients[serverID] == nil {
+            await connect(to: serverID)
+        }
+        guard let client = clients[serverID] else {
+            if case let .failed(failure, _) = state(for: serverID) { throw failure }
+            throw ClavironClientFailure(
+                kind: .unavailable,
+                diagnosticDetail: "No Claviron connection for certificate management."
+            )
+        }
+        return try await client.loadCertificateChain(for: certificate)
+    }
+
     func loadCertificates(for serverID: ServerID) async {
         if clients[serverID] == nil {
             await connect(to: serverID)

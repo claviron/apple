@@ -8,6 +8,11 @@
 // For information on using the generated types, please see the documentation:
 //   https://github.com/apple/swift-protobuf/
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import SwiftProtobuf
 
 // If the compiler emits an error on this type, it is because this file
@@ -18,6 +23,52 @@ import SwiftProtobuf
 fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
+}
+
+nonisolated enum Claviron_Applications_ApplicationExecutionKind: SwiftProtobuf.Enum, Swift.CaseIterable {
+  typealias RawValue = Int
+  case unspecified // = 0
+  case inherit // = 1
+  case shared // = 2
+  case dedicatedCurrentThread // = 3
+  case dedicatedMultiThread // = 4
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .unspecified
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .unspecified
+    case 1: self = .inherit
+    case 2: self = .shared
+    case 3: self = .dedicatedCurrentThread
+    case 4: self = .dedicatedMultiThread
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .unspecified: return 0
+    case .inherit: return 1
+    case .shared: return 2
+    case .dedicatedCurrentThread: return 3
+    case .dedicatedMultiThread: return 4
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static let allCases: [Claviron_Applications_ApplicationExecutionKind] = [
+    .unspecified,
+    .inherit,
+    .shared,
+    .dedicatedCurrentThread,
+    .dedicatedMultiThread,
+  ]
+
 }
 
 nonisolated enum Claviron_Applications_ApplicationLifecycle: SwiftProtobuf.Enum, Swift.CaseIterable {
@@ -108,6 +159,44 @@ nonisolated enum Claviron_Applications_FleetMemberRole: SwiftProtobuf.Enum, Swif
     .master,
     .worker,
     .standalone,
+  ]
+
+}
+
+nonisolated enum Claviron_Applications_LinkReachability: SwiftProtobuf.Enum, Swift.CaseIterable {
+  typealias RawValue = Int
+  case unspecified // = 0
+  case connected // = 1
+  case disconnected // = 2
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .unspecified
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .unspecified
+    case 1: self = .connected
+    case 2: self = .disconnected
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .unspecified: return 0
+    case .connected: return 1
+    case .disconnected: return 2
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static let allCases: [Claviron_Applications_LinkReachability] = [
+    .unspecified,
+    .connected,
+    .disconnected,
   ]
 
 }
@@ -364,6 +453,15 @@ nonisolated struct Claviron_Applications_ApplicationDescription: Sendable {
   /// Clears the value of `icon`. Subsequent reads from it will return its default value.
   mutating func clearIcon() {self._icon = nil}
 
+  var execution: Claviron_Applications_ApplicationExecution {
+    get {_execution ?? Claviron_Applications_ApplicationExecution()}
+    set {_execution = newValue}
+  }
+  /// Returns true if `execution` has been explicitly set.
+  var hasExecution: Bool {self._execution != nil}
+  /// Clears the value of `execution`. Subsequent reads from it will return its default value.
+  mutating func clearExecution() {self._execution = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -372,6 +470,30 @@ nonisolated struct Claviron_Applications_ApplicationDescription: Sendable {
   fileprivate var _runner: String? = nil
   fileprivate var _requestMode: String? = nil
   fileprivate var _icon: String? = nil
+  fileprivate var _execution: Claviron_Applications_ApplicationExecution? = nil
+}
+
+nonisolated struct Claviron_Applications_ApplicationExecution: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var kind: Claviron_Applications_ApplicationExecutionKind = .unspecified
+
+  var threads: UInt32 {
+    get {_threads ?? 0}
+    set {_threads = newValue}
+  }
+  /// Returns true if `threads` has been explicitly set.
+  var hasThreads: Bool {self._threads != nil}
+  /// Clears the value of `threads`. Subsequent reads from it will return its default value.
+  mutating func clearThreads() {self._threads = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _threads: UInt32? = nil
 }
 
 nonisolated struct Claviron_Applications_ApplicationPoolStatus: Sendable {
@@ -505,9 +627,276 @@ nonisolated struct Claviron_Applications_ApplicationCommandResponse: Sendable {
   fileprivate var _id: Claviron_Applications_ApplicationId? = nil
 }
 
+nonisolated struct Claviron_Applications_LinkApplicationId: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Orbit Link destination; several hosted applications may share it.
+  var fleetName: String = String()
+
+  var name: String = String()
+
+  /// Empty retains the legacy Orbit address. Other methods need their own adapter.
+  var transport: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+nonisolated struct Claviron_Applications_LinkApplicationInfo: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var id: Claviron_Applications_LinkApplicationId {
+    get {_id ?? Claviron_Applications_LinkApplicationId()}
+    set {_id = newValue}
+  }
+  /// Returns true if `id` has been explicitly set.
+  var hasID: Bool {self._id != nil}
+  /// Clears the value of `id`. Subsequent reads from it will return its default value.
+  mutating func clearID() {self._id = nil}
+
+  /// Advertised Link runtime. Empty when a configured target has never joined.
+  var runtime: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _id: Claviron_Applications_LinkApplicationId? = nil
+}
+
+nonisolated struct Claviron_Applications_ListLinkApplicationsRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+nonisolated struct Claviron_Applications_ListLinkApplicationsResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var capturedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
+    get {_capturedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
+    set {_capturedAt = newValue}
+  }
+  /// Returns true if `capturedAt` has been explicitly set.
+  var hasCapturedAt: Bool {self._capturedAt != nil}
+  /// Clears the value of `capturedAt`. Subsequent reads from it will return its default value.
+  mutating func clearCapturedAt() {self._capturedAt = nil}
+
+  var applications: [Claviron_Applications_LinkApplicationStatus] = []
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _capturedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
+}
+
+nonisolated struct Claviron_Applications_LinkApplicationStatusRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var id: Claviron_Applications_LinkApplicationId {
+    get {_id ?? Claviron_Applications_LinkApplicationId()}
+    set {_id = newValue}
+  }
+  /// Returns true if `id` has been explicitly set.
+  var hasID: Bool {self._id != nil}
+  /// Clears the value of `id`. Subsequent reads from it will return its default value.
+  mutating func clearID() {self._id = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _id: Claviron_Applications_LinkApplicationId? = nil
+}
+
+nonisolated struct Claviron_Applications_LinkApplicationStatusResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var capturedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
+    get {_capturedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
+    set {_capturedAt = newValue}
+  }
+  /// Returns true if `capturedAt` has been explicitly set.
+  var hasCapturedAt: Bool {self._capturedAt != nil}
+  /// Clears the value of `capturedAt`. Subsequent reads from it will return its default value.
+  mutating func clearCapturedAt() {self._capturedAt = nil}
+
+  var application: Claviron_Applications_LinkApplicationStatus {
+    get {_application ?? Claviron_Applications_LinkApplicationStatus()}
+    set {_application = newValue}
+  }
+  /// Returns true if `application` has been explicitly set.
+  var hasApplication: Bool {self._application != nil}
+  /// Clears the value of `application`. Subsequent reads from it will return its default value.
+  mutating func clearApplication() {self._application = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _capturedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
+  fileprivate var _application: Claviron_Applications_LinkApplicationStatus? = nil
+}
+
+nonisolated struct Claviron_Applications_LinkApplicationStatus: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var info: Claviron_Applications_LinkApplicationInfo {
+    get {_info ?? Claviron_Applications_LinkApplicationInfo()}
+    set {_info = newValue}
+  }
+  /// Returns true if `info` has been explicitly set.
+  var hasInfo: Bool {self._info != nil}
+  /// Clears the value of `info`. Subsequent reads from it will return its default value.
+  mutating func clearInfo() {self._info = nil}
+
+  /// Link connectivity is independent of the hosted application's lifecycle.
+  var link: Claviron_Applications_LinkReachability = .unspecified
+
+  var connectedLanes: UInt32 = 0
+
+  var lanes: [Claviron_Applications_LinkApplicationLane] = []
+
+  /// The runner's application manager supplies this complete snapshot.
+  /// Absent until a connected runner has reported its applications.
+  var hosted: Claviron_Applications_ListApplicationsResponse {
+    get {_hosted ?? Claviron_Applications_ListApplicationsResponse()}
+    set {_hosted = newValue}
+  }
+  /// Returns true if `hosted` has been explicitly set.
+  var hasHosted: Bool {self._hosted != nil}
+  /// Clears the value of `hosted`. Subsequent reads from it will return its default value.
+  mutating func clearHosted() {self._hosted = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _info: Claviron_Applications_LinkApplicationInfo? = nil
+  fileprivate var _hosted: Claviron_Applications_ListApplicationsResponse? = nil
+}
+
+nonisolated struct Claviron_Applications_LinkApplicationLane: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var lane: UInt32 = 0
+
+  var pid: UInt32 {
+    get {_pid ?? 0}
+    set {_pid = newValue}
+  }
+  /// Returns true if `pid` has been explicitly set.
+  var hasPid: Bool {self._pid != nil}
+  /// Clears the value of `pid`. Subsequent reads from it will return its default value.
+  mutating func clearPid() {self._pid = nil}
+
+  var incarnation: UInt64 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _pid: UInt32? = nil
+}
+
+nonisolated struct Claviron_Applications_LinkApplicationCommandRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var id: Claviron_Applications_LinkApplicationId {
+    get {_id ?? Claviron_Applications_LinkApplicationId()}
+    set {_id = newValue}
+  }
+  /// Returns true if `id` has been explicitly set.
+  var hasID: Bool {self._id != nil}
+  /// Clears the value of `id`. Subsequent reads from it will return its default value.
+  mutating func clearID() {self._id = nil}
+
+  /// Application-defined command. The bridge does not execute it.
+  var command: String = String()
+
+  var payload: Data = Data()
+
+  /// Required for Start/Stop/Restart; selects one application inside the runner.
+  var application: Claviron_Applications_ApplicationId {
+    get {_application ?? Claviron_Applications_ApplicationId()}
+    set {_application = newValue}
+  }
+  /// Returns true if `application` has been explicitly set.
+  var hasApplication: Bool {self._application != nil}
+  /// Clears the value of `application`. Subsequent reads from it will return its default value.
+  mutating func clearApplication() {self._application = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _id: Claviron_Applications_LinkApplicationId? = nil
+  fileprivate var _application: Claviron_Applications_ApplicationId? = nil
+}
+
+/// Accepted means written to one live Link inbox, not executed by the runner.
+nonisolated struct Claviron_Applications_LinkApplicationCommandResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var id: Claviron_Applications_LinkApplicationId {
+    get {_id ?? Claviron_Applications_LinkApplicationId()}
+    set {_id = newValue}
+  }
+  /// Returns true if `id` has been explicitly set.
+  var hasID: Bool {self._id != nil}
+  /// Clears the value of `id`. Subsequent reads from it will return its default value.
+  mutating func clearID() {self._id = nil}
+
+  var accepted: Bool = false
+
+  var application: Claviron_Applications_ApplicationId {
+    get {_application ?? Claviron_Applications_ApplicationId()}
+    set {_application = newValue}
+  }
+  /// Returns true if `application` has been explicitly set.
+  var hasApplication: Bool {self._application != nil}
+  /// Clears the value of `application`. Subsequent reads from it will return its default value.
+  mutating func clearApplication() {self._application = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _id: Claviron_Applications_LinkApplicationId? = nil
+  fileprivate var _application: Claviron_Applications_ApplicationId? = nil
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate nonisolated let _protobuf_package = "claviron.applications"
+
+nonisolated extension Claviron_Applications_ApplicationExecutionKind: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0APPLICATION_EXECUTION_KIND_UNSPECIFIED\0\u{1}APPLICATION_EXECUTION_KIND_INHERIT\0\u{1}APPLICATION_EXECUTION_KIND_SHARED\0\u{1}APPLICATION_EXECUTION_KIND_DEDICATED_CURRENT_THREAD\0\u{1}APPLICATION_EXECUTION_KIND_DEDICATED_MULTI_THREAD\0")
+}
 
 nonisolated extension Claviron_Applications_ApplicationLifecycle: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0APPLICATION_LIFECYCLE_UNSPECIFIED\0\u{1}APPLICATION_LIFECYCLE_STARTING\0\u{1}APPLICATION_LIFECYCLE_RUNNING\0\u{1}APPLICATION_LIFECYCLE_STOPPING\0\u{1}APPLICATION_LIFECYCLE_STOPPED\0\u{1}APPLICATION_LIFECYCLE_FAILED\0")
@@ -515,6 +904,10 @@ nonisolated extension Claviron_Applications_ApplicationLifecycle: SwiftProtobuf.
 
 nonisolated extension Claviron_Applications_FleetMemberRole: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0FLEET_MEMBER_ROLE_UNSPECIFIED\0\u{1}FLEET_MEMBER_ROLE_MASTER\0\u{1}FLEET_MEMBER_ROLE_WORKER\0\u{1}FLEET_MEMBER_ROLE_STANDALONE\0")
+}
+
+nonisolated extension Claviron_Applications_LinkReachability: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0LINK_REACHABILITY_UNSPECIFIED\0\u{1}LINK_REACHABILITY_CONNECTED\0\u{1}LINK_REACHABILITY_DISCONNECTED\0")
 }
 
 nonisolated extension Claviron_Applications_ApplicationId: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -870,7 +1263,7 @@ nonisolated extension Claviron_Applications_ApplicationPlacement: SwiftProtobuf.
 
 nonisolated extension Claviron_Applications_ApplicationDescription: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ApplicationDescription"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}runtime\0\u{1}frameworks\0\u{1}runner\0\u{3}request_mode\0\u{1}icon\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}runtime\0\u{1}frameworks\0\u{1}runner\0\u{3}request_mode\0\u{1}icon\0\u{1}execution\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -883,6 +1276,7 @@ nonisolated extension Claviron_Applications_ApplicationDescription: SwiftProtobu
       case 3: try { try decoder.decodeSingularStringField(value: &self._runner) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self._requestMode) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self._icon) }()
+      case 6: try { try decoder.decodeSingularMessageField(value: &self._execution) }()
       default: break
       }
     }
@@ -908,6 +1302,9 @@ nonisolated extension Claviron_Applications_ApplicationDescription: SwiftProtobu
     try { if let v = self._icon {
       try visitor.visitSingularStringField(value: v, fieldNumber: 5)
     } }()
+    try { if let v = self._execution {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -917,6 +1314,46 @@ nonisolated extension Claviron_Applications_ApplicationDescription: SwiftProtobu
     if lhs._runner != rhs._runner {return false}
     if lhs._requestMode != rhs._requestMode {return false}
     if lhs._icon != rhs._icon {return false}
+    if lhs._execution != rhs._execution {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_ApplicationExecution: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ApplicationExecution"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}threads\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self._threads) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.kind != .unspecified {
+      try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
+    }
+    try { if let v = self._threads {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_ApplicationExecution, rhs: Claviron_Applications_ApplicationExecution) -> Bool {
+    if lhs.kind != rhs.kind {return false}
+    if lhs._threads != rhs._threads {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1089,6 +1526,407 @@ nonisolated extension Claviron_Applications_ApplicationCommandResponse: SwiftPro
   static func ==(lhs: Claviron_Applications_ApplicationCommandResponse, rhs: Claviron_Applications_ApplicationCommandResponse) -> Bool {
     if lhs._id != rhs._id {return false}
     if lhs.accepted != rhs.accepted {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_LinkApplicationId: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkApplicationId"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}fleet_name\0\u{1}name\0\u{1}transport\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.fleetName) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.transport) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.fleetName.isEmpty {
+      try visitor.visitSingularStringField(value: self.fleetName, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    if !self.transport.isEmpty {
+      try visitor.visitSingularStringField(value: self.transport, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_LinkApplicationId, rhs: Claviron_Applications_LinkApplicationId) -> Bool {
+    if lhs.fleetName != rhs.fleetName {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.transport != rhs.transport {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_LinkApplicationInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkApplicationInfo"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}runtime\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.runtime) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._id {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if !self.runtime.isEmpty {
+      try visitor.visitSingularStringField(value: self.runtime, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_LinkApplicationInfo, rhs: Claviron_Applications_LinkApplicationInfo) -> Bool {
+    if lhs._id != rhs._id {return false}
+    if lhs.runtime != rhs.runtime {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_ListLinkApplicationsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ListLinkApplicationsRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_ListLinkApplicationsRequest, rhs: Claviron_Applications_ListLinkApplicationsRequest) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_ListLinkApplicationsResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ListLinkApplicationsResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}captured_at\0\u{1}applications\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._capturedAt) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.applications) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._capturedAt {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if !self.applications.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.applications, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_ListLinkApplicationsResponse, rhs: Claviron_Applications_ListLinkApplicationsResponse) -> Bool {
+    if lhs._capturedAt != rhs._capturedAt {return false}
+    if lhs.applications != rhs.applications {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_LinkApplicationStatusRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkApplicationStatusRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._id) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._id {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_LinkApplicationStatusRequest, rhs: Claviron_Applications_LinkApplicationStatusRequest) -> Bool {
+    if lhs._id != rhs._id {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_LinkApplicationStatusResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkApplicationStatusResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}captured_at\0\u{1}application\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._capturedAt) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._application) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._capturedAt {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._application {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_LinkApplicationStatusResponse, rhs: Claviron_Applications_LinkApplicationStatusResponse) -> Bool {
+    if lhs._capturedAt != rhs._capturedAt {return false}
+    if lhs._application != rhs._application {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_LinkApplicationStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkApplicationStatus"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}info\0\u{1}link\0\u{3}connected_lanes\0\u{1}lanes\0\u{1}hosted\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._info) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.link) }()
+      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.connectedLanes) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.lanes) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._hosted) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._info {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if self.link != .unspecified {
+      try visitor.visitSingularEnumField(value: self.link, fieldNumber: 2)
+    }
+    if self.connectedLanes != 0 {
+      try visitor.visitSingularUInt32Field(value: self.connectedLanes, fieldNumber: 3)
+    }
+    if !self.lanes.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.lanes, fieldNumber: 4)
+    }
+    try { if let v = self._hosted {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_LinkApplicationStatus, rhs: Claviron_Applications_LinkApplicationStatus) -> Bool {
+    if lhs._info != rhs._info {return false}
+    if lhs.link != rhs.link {return false}
+    if lhs.connectedLanes != rhs.connectedLanes {return false}
+    if lhs.lanes != rhs.lanes {return false}
+    if lhs._hosted != rhs._hosted {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_LinkApplicationLane: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkApplicationLane"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}lane\0\u{1}pid\0\u{1}incarnation\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.lane) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self._pid) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.incarnation) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.lane != 0 {
+      try visitor.visitSingularUInt32Field(value: self.lane, fieldNumber: 1)
+    }
+    try { if let v = self._pid {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 2)
+    } }()
+    if self.incarnation != 0 {
+      try visitor.visitSingularUInt64Field(value: self.incarnation, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_LinkApplicationLane, rhs: Claviron_Applications_LinkApplicationLane) -> Bool {
+    if lhs.lane != rhs.lane {return false}
+    if lhs._pid != rhs._pid {return false}
+    if lhs.incarnation != rhs.incarnation {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_LinkApplicationCommandRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkApplicationCommandRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}command\0\u{1}payload\0\u{1}application\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.command) }()
+      case 3: try { try decoder.decodeSingularBytesField(value: &self.payload) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._application) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._id {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if !self.command.isEmpty {
+      try visitor.visitSingularStringField(value: self.command, fieldNumber: 2)
+    }
+    if !self.payload.isEmpty {
+      try visitor.visitSingularBytesField(value: self.payload, fieldNumber: 3)
+    }
+    try { if let v = self._application {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_LinkApplicationCommandRequest, rhs: Claviron_Applications_LinkApplicationCommandRequest) -> Bool {
+    if lhs._id != rhs._id {return false}
+    if lhs.command != rhs.command {return false}
+    if lhs.payload != rhs.payload {return false}
+    if lhs._application != rhs._application {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Applications_LinkApplicationCommandResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkApplicationCommandResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}accepted\0\u{1}application\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._id) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.accepted) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._application) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._id {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if self.accepted != false {
+      try visitor.visitSingularBoolField(value: self.accepted, fieldNumber: 2)
+    }
+    try { if let v = self._application {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Applications_LinkApplicationCommandResponse, rhs: Claviron_Applications_LinkApplicationCommandResponse) -> Bool {
+    if lhs._id != rhs._id {return false}
+    if lhs.accepted != rhs.accepted {return false}
+    if lhs._application != rhs._application {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

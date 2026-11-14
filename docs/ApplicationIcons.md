@@ -11,7 +11,7 @@ Codes are case-insensitive. Supported choices:
 
 | Codes | Presentation |
 | --- | --- |
-| `php`, `python`, `javascript`, `lua`, `olua`, `rust`, `go`, `golang`, `java`, `kotlin` | Runtime/language brand icons |
+| `php`, `python`, `javascript`, `lua`, `olua`, `rust`, `go`, `golang`, `java`, `kotlin`, `c`, `c++`, `cpp` | Runtime/language brand icons |
 | `laravel`, `symfony`, `fastapi`, `django`, `flask`, `nestjs` | Bundled framework brand icons |
 | `frankenphp`, `franken` | FrankenPHP's elephant icon |
 | `flutter`, `spring`, `tomcat`, `apache`, `prometheus` | Framework and server brand icons |
@@ -24,7 +24,8 @@ Codes are case-insensitive. Supported choices:
 | `server`, `terminal`, `globe`, `app` | General-purpose system icons |
 
 For runner launches, use `icon: fastapi` in YAML or `--icon fastapi` on the CLI.
-Typed launch options expose the same `icon` field. PHP and JavaScript embedded
+Typed launch options expose the same `icon` field. A native module's application
+declares `icon: c` under its name in `modules.yaml`. PHP and JavaScript embedded
 definitions provide `.icon("laravel")` and `.icon("hono")` respectively; Lua
 applications accept `icon` in their definition. Gufi also provides
 `Runner::icon("fastapi")`. An Orbit JavaScript application can use:
@@ -48,6 +49,9 @@ lower shape. These icon codes do not alter runtime or framework discovery.
 The Orbit SVG retains the shapes and colors from Orbitive's `assets/logo.svg`,
 with the wordmark removed and a square viewport. It is an explicit icon choice;
 using Orbit transport does not automatically override an application's icon.
+
+The C and C++ SVGs are separate assets. The C one adapts the C++ one, without its
+plus signs and in its own colors. Neither code changes the reported runtime.
 
 The Deno SVG's monochrome shape is black in light mode and white in dark mode.
 Choosing `icon: deno` does not change a JavaScript application's reported runtime.

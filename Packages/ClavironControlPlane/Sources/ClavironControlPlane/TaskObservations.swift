@@ -139,6 +139,8 @@ public enum TaskKindObservation: Equatable, Sendable {
     case php
     case js
     case lua
+    /// Run by an application over Orbit Link.
+    case link
     case unrecognized(Int)
 }
 

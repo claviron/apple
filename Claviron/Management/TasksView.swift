@@ -814,6 +814,7 @@ extension TaskKindObservation {
         case .php: "PHP"
         case .js: "JavaScript"
         case .lua: "Lua"
+        case .link: "Link"
         case let .unrecognized(rawValue): "Unknown (\(rawValue))"
         }
     }
@@ -825,6 +826,7 @@ extension TaskKindObservation {
         case .php: "chevron.left.forwardslash.chevron.right"
         case .js: "curlybraces"
         case .lua: "moon.fill"
+        case .link: "link"
         case .unspecified, .unrecognized: "questionmark.diamond"
         }
     }
@@ -835,7 +837,7 @@ extension TaskKindObservation {
         case .php: "PHP"
         case .js: "TaskIconJavaScript"
         case .lua: "TaskIconLua"
-        case .command, .unspecified, .unrecognized: nil
+        case .command, .link, .unspecified, .unrecognized: nil
         }
     }
 

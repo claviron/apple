@@ -91,11 +91,22 @@ public struct ProtobufTimestampObservation: Equatable, Sendable {
     }
 }
 
+/// How the CA validates control of the names. Absent from an action, the
+/// server's default (`acme.method` in its configuration) is used. A method the
+/// server cannot use is refused before any order is placed.
+public enum ACMEChallengeMethod: String, CaseIterable, Identifiable, Sendable {
+    case http01 = "http-01"
+    case dns01 = "dns-01"
+    case tlsAlpn01 = "tls-alpn-01"
+
+    public var id: String { rawValue }
+}
+
 public enum CertificateManagementAction: Equatable, Sendable {
     /// Issue through ACME. The first hostname is the common name; the rest
     /// are subject alternative names. The server may attach an existing
     /// certificate that already covers them instead of issuing a new one.
-    case add(hostnames: [String])
+    case add(hostnames: [String], method: ACMEChallengeMethod? = nil)
     /// Permanently delete the certificate with this common name.
     case remove(commonName: String)
     /// Create the self-signed root of the server's local CA.
@@ -105,7 +116,7 @@ public enum CertificateManagementAction: Equatable, Sendable {
     /// Preserve the local certificate's key, subject and every extension.
     case renewLocal(commonName: String, validityDays: UInt32)
     /// Order a fresh ACME certificate; validity is the CA's, never asked for.
-    case renewACME(commonName: String)
+    case renewACME(commonName: String, method: ACMEChallengeMethod? = nil)
     /// Revoke a stored certificate and disable it in the hosting database.
     case revoke(commonName: String)
     case importPEM(chain: String, privateKey: String, issuer: String?)

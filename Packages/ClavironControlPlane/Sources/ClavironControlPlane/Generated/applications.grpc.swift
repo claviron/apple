@@ -85,13 +85,97 @@ internal enum Claviron_Applications_ApplicationManager: Sendable {
                 type: .unary
             )
         }
+        /// Namespace for "ListLinkApplications" metadata.
+        internal enum ListLinkApplications: Sendable {
+            /// Request type for "ListLinkApplications".
+            internal typealias Input = Claviron_Applications_ListLinkApplicationsRequest
+            /// Response type for "ListLinkApplications".
+            internal typealias Output = Claviron_Applications_ListLinkApplicationsResponse
+            /// Descriptor for "ListLinkApplications".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "claviron.applications.ApplicationManager"),
+                method: "ListLinkApplications",
+                type: .unary
+            )
+        }
+        /// Namespace for "GetLinkApplicationStatus" metadata.
+        internal enum GetLinkApplicationStatus: Sendable {
+            /// Request type for "GetLinkApplicationStatus".
+            internal typealias Input = Claviron_Applications_LinkApplicationStatusRequest
+            /// Response type for "GetLinkApplicationStatus".
+            internal typealias Output = Claviron_Applications_LinkApplicationStatusResponse
+            /// Descriptor for "GetLinkApplicationStatus".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "claviron.applications.ApplicationManager"),
+                method: "GetLinkApplicationStatus",
+                type: .unary
+            )
+        }
+        /// Namespace for "StartLinkApplication" metadata.
+        internal enum StartLinkApplication: Sendable {
+            /// Request type for "StartLinkApplication".
+            internal typealias Input = Claviron_Applications_LinkApplicationCommandRequest
+            /// Response type for "StartLinkApplication".
+            internal typealias Output = Claviron_Applications_LinkApplicationCommandResponse
+            /// Descriptor for "StartLinkApplication".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "claviron.applications.ApplicationManager"),
+                method: "StartLinkApplication",
+                type: .unary
+            )
+        }
+        /// Namespace for "StopLinkApplication" metadata.
+        internal enum StopLinkApplication: Sendable {
+            /// Request type for "StopLinkApplication".
+            internal typealias Input = Claviron_Applications_LinkApplicationCommandRequest
+            /// Response type for "StopLinkApplication".
+            internal typealias Output = Claviron_Applications_LinkApplicationCommandResponse
+            /// Descriptor for "StopLinkApplication".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "claviron.applications.ApplicationManager"),
+                method: "StopLinkApplication",
+                type: .unary
+            )
+        }
+        /// Namespace for "RestartLinkApplication" metadata.
+        internal enum RestartLinkApplication: Sendable {
+            /// Request type for "RestartLinkApplication".
+            internal typealias Input = Claviron_Applications_LinkApplicationCommandRequest
+            /// Response type for "RestartLinkApplication".
+            internal typealias Output = Claviron_Applications_LinkApplicationCommandResponse
+            /// Descriptor for "RestartLinkApplication".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "claviron.applications.ApplicationManager"),
+                method: "RestartLinkApplication",
+                type: .unary
+            )
+        }
+        /// Namespace for "SendLinkCommand" metadata.
+        internal enum SendLinkCommand: Sendable {
+            /// Request type for "SendLinkCommand".
+            internal typealias Input = Claviron_Applications_LinkApplicationCommandRequest
+            /// Response type for "SendLinkCommand".
+            internal typealias Output = Claviron_Applications_LinkApplicationCommandResponse
+            /// Descriptor for "SendLinkCommand".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "claviron.applications.ApplicationManager"),
+                method: "SendLinkCommand",
+                type: .unary
+            )
+        }
         /// Descriptors for all methods in the "claviron.applications.ApplicationManager" service.
         internal static let descriptors: [GRPCCore.MethodDescriptor] = [
             ListApplications.descriptor,
             GetApplicationStatus.descriptor,
             StartApplication.descriptor,
             StopApplication.descriptor,
-            RestartApplication.descriptor
+            RestartApplication.descriptor,
+            ListLinkApplications.descriptor,
+            GetLinkApplicationStatus.descriptor,
+            StartLinkApplication.descriptor,
+            StopLinkApplication.descriptor,
+            RestartLinkApplication.descriptor,
+            SendLinkCommand.descriptor
         ]
     }
 }
@@ -204,6 +288,125 @@ extension Claviron_Applications_ApplicationManager {
             deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_ApplicationCommandResponse>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_ApplicationCommandResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "ListLinkApplications" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_ListLinkApplicationsRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_ListLinkApplicationsRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_ListLinkApplicationsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        func listLinkApplications<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_ListLinkApplicationsRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_ListLinkApplicationsRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_ListLinkApplicationsResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_ListLinkApplicationsResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "GetLinkApplicationStatus" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationStatusRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationStatusRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationStatusResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        func getLinkApplicationStatus<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationStatusRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationStatusRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationStatusResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationStatusResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "StartLinkApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > These forward application lifecycle requests to the runner. The edge
+        /// > does not start or stop the runner process.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationCommandRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationCommandResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        func startLinkApplication<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationCommandRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationCommandResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "StopLinkApplication" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationCommandRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationCommandResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        func stopLinkApplication<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationCommandRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationCommandResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "RestartLinkApplication" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationCommandRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationCommandResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        func restartLinkApplication<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationCommandRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationCommandResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "SendLinkCommand" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationCommandRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationCommandResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        func sendLinkCommand<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationCommandRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationCommandResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
     }
 
@@ -372,6 +575,191 @@ extension Claviron_Applications_ApplicationManager {
                 onResponse: handleResponse
             )
         }
+
+        /// Call the "ListLinkApplications" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_ListLinkApplicationsRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_ListLinkApplicationsRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_ListLinkApplicationsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func listLinkApplications<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_ListLinkApplicationsRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_ListLinkApplicationsRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_ListLinkApplicationsResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_ListLinkApplicationsResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Claviron_Applications_ApplicationManager.Method.ListLinkApplications.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "GetLinkApplicationStatus" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationStatusRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationStatusRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationStatusResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func getLinkApplicationStatus<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationStatusRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationStatusRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationStatusResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationStatusResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Claviron_Applications_ApplicationManager.Method.GetLinkApplicationStatus.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "StartLinkApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > These forward application lifecycle requests to the runner. The edge
+        /// > does not start or stop the runner process.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationCommandRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationCommandResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func startLinkApplication<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationCommandRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationCommandResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Claviron_Applications_ApplicationManager.Method.StartLinkApplication.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "StopLinkApplication" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationCommandRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationCommandResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func stopLinkApplication<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationCommandRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationCommandResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Claviron_Applications_ApplicationManager.Method.StopLinkApplication.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "RestartLinkApplication" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationCommandRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationCommandResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func restartLinkApplication<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationCommandRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationCommandResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Claviron_Applications_ApplicationManager.Method.RestartLinkApplication.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "SendLinkCommand" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+        ///   - serializer: A serializer for `Claviron_Applications_LinkApplicationCommandRequest` messages.
+        ///   - deserializer: A deserializer for `Claviron_Applications_LinkApplicationCommandResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response and returns its result to
+        ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+        ///       already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func sendLinkCommand<Result>(
+            request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+            serializer: some GRPCCore.MessageSerializer<Claviron_Applications_LinkApplicationCommandRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Claviron_Applications_LinkApplicationCommandResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Claviron_Applications_ApplicationManager.Method.SendLinkCommand.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
     }
 }
 
@@ -498,6 +886,161 @@ extension Claviron_Applications_ApplicationManager.ClientProtocol {
             request: request,
             serializer: GRPCProtobuf.ProtobufSerializer<Claviron_Applications_ApplicationCommandRequest>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<Claviron_Applications_ApplicationCommandResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "ListLinkApplications" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Claviron_Applications_ListLinkApplicationsRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func listLinkApplications<Result>(
+        request: GRPCCore.ClientRequest<Claviron_Applications_ListLinkApplicationsRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_ListLinkApplicationsResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.listLinkApplications(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Claviron_Applications_ListLinkApplicationsRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Claviron_Applications_ListLinkApplicationsResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetLinkApplicationStatus" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Claviron_Applications_LinkApplicationStatusRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func getLinkApplicationStatus<Result>(
+        request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationStatusRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationStatusResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.getLinkApplicationStatus(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Claviron_Applications_LinkApplicationStatusRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Claviron_Applications_LinkApplicationStatusResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "StartLinkApplication" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > These forward application lifecycle requests to the runner. The edge
+    /// > does not start or stop the runner process.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func startLinkApplication<Result>(
+        request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.startLinkApplication(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Claviron_Applications_LinkApplicationCommandRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Claviron_Applications_LinkApplicationCommandResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "StopLinkApplication" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func stopLinkApplication<Result>(
+        request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.stopLinkApplication(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Claviron_Applications_LinkApplicationCommandRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Claviron_Applications_LinkApplicationCommandResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "RestartLinkApplication" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func restartLinkApplication<Result>(
+        request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.restartLinkApplication(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Claviron_Applications_LinkApplicationCommandRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Claviron_Applications_LinkApplicationCommandResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "SendLinkCommand" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Claviron_Applications_LinkApplicationCommandRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func sendLinkCommand<Result>(
+        request: GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.sendLinkCommand(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Claviron_Applications_LinkApplicationCommandRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Claviron_Applications_LinkApplicationCommandResponse>(),
             options: options,
             onResponse: handleResponse
         )
@@ -646,6 +1189,185 @@ extension Claviron_Applications_ApplicationManager.ClientProtocol {
             metadata: metadata
         )
         return try await self.restartApplication(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "ListLinkApplications" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func listLinkApplications<Result>(
+        _ message: Claviron_Applications_ListLinkApplicationsRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_ListLinkApplicationsResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Claviron_Applications_ListLinkApplicationsRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.listLinkApplications(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetLinkApplicationStatus" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func getLinkApplicationStatus<Result>(
+        _ message: Claviron_Applications_LinkApplicationStatusRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationStatusResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationStatusRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.getLinkApplicationStatus(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "StartLinkApplication" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > These forward application lifecycle requests to the runner. The edge
+    /// > does not start or stop the runner process.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func startLinkApplication<Result>(
+        _ message: Claviron_Applications_LinkApplicationCommandRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.startLinkApplication(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "StopLinkApplication" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func stopLinkApplication<Result>(
+        _ message: Claviron_Applications_LinkApplicationCommandRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.stopLinkApplication(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "RestartLinkApplication" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func restartLinkApplication<Result>(
+        _ message: Claviron_Applications_LinkApplicationCommandRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.restartLinkApplication(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "SendLinkCommand" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response and returns its result to
+    ///       the caller. Returning from the closure will cancel the RPC if it hasn't
+    ///       already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func sendLinkCommand<Result>(
+        _ message: Claviron_Applications_LinkApplicationCommandRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Claviron_Applications_LinkApplicationCommandResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Claviron_Applications_LinkApplicationCommandRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.sendLinkCommand(
             request: request,
             options: options,
             onResponse: handleResponse

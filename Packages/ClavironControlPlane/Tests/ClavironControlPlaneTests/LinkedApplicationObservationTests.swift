@@ -8,14 +8,14 @@ struct LinkedApplicationObservationTests {
     /// and a lane's missing pid is not a zero.
     @Test
     func anUnreportedRunnerHasNoHostedSnapshot() {
-        var message = Claviron_LinkedApplications_LinkedApplicationStatus()
+        var message = Claviron_Applications_LinkApplicationStatus()
         message.info.id.fleetName = "octane"
         message.info.id.name = "octane-app"
         message.info.id.transport = "orbit"
         message.info.runtime = "php"
         message.link = .connected
         message.connectedLanes = 1
-        var lane = Claviron_LinkedApplications_LinkedApplicationLane()
+        var lane = Claviron_Applications_LinkApplicationLane()
         lane.lane = 4
         lane.incarnation = 2
         message.lanes = [lane]
@@ -31,7 +31,7 @@ struct LinkedApplicationObservationTests {
 
     @Test
     func aReportedRunnerCarriesItsApplications() {
-        var message = Claviron_LinkedApplications_LinkedApplicationStatus()
+        var message = Claviron_Applications_LinkApplicationStatus()
         message.link = .disconnected
         message.hosted.membersExpected = 1
         message.hosted.membersReporting = 1

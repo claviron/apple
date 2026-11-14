@@ -11,6 +11,7 @@ xcuserdata/
 DerivedData/
 build/
 .build/
+.index-build
 Packages/ClavironControlPlane/.protocol-generation.*
 
 # Local development and signing settings

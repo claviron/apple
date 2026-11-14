@@ -20,6 +20,44 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
+nonisolated enum Claviron_Tasks_LinkTaskKind: SwiftProtobuf.Enum, Swift.CaseIterable {
+  typealias RawValue = Int
+  case unspecified // = 0
+  case worker // = 1
+  case runner // = 2
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .unspecified
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .unspecified
+    case 1: self = .worker
+    case 2: self = .runner
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .unspecified: return 0
+    case .worker: return 1
+    case .runner: return 2
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static let allCases: [Claviron_Tasks_LinkTaskKind] = [
+    .unspecified,
+    .worker,
+    .runner,
+  ]
+
+}
+
 nonisolated enum Claviron_Tasks_RunTaskFailureKind: SwiftProtobuf.Enum, Swift.CaseIterable {
   typealias RawValue = Int
   case unspecified // = 0
@@ -82,6 +120,7 @@ nonisolated enum Claviron_Tasks_TaskKind: SwiftProtobuf.Enum, Swift.CaseIterable
   case php // = 3
   case js // = 4
   case lua // = 5
+  case link // = 6
   case UNRECOGNIZED(Int)
 
   init() {
@@ -96,6 +135,7 @@ nonisolated enum Claviron_Tasks_TaskKind: SwiftProtobuf.Enum, Swift.CaseIterable
     case 3: self = .php
     case 4: self = .js
     case 5: self = .lua
+    case 6: self = .link
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -108,6 +148,7 @@ nonisolated enum Claviron_Tasks_TaskKind: SwiftProtobuf.Enum, Swift.CaseIterable
     case .php: return 3
     case .js: return 4
     case .lua: return 5
+    case .link: return 6
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -120,6 +161,7 @@ nonisolated enum Claviron_Tasks_TaskKind: SwiftProtobuf.Enum, Swift.CaseIterable
     .php,
     .js,
     .lua,
+    .link,
   ]
 
 }
@@ -443,37 +485,177 @@ nonisolated struct Claviron_Tasks_TaskStatusResponse: Sendable {
 }
 
 /// One configured logical task and its observed fleet placements.
-nonisolated struct Claviron_Tasks_TaskStatus: Sendable {
+nonisolated struct Claviron_Tasks_TaskStatus: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var name: String = String()
+  var name: String {
+    get {_storage._name}
+    set {_uniqueStorage()._name = newValue}
+  }
 
-  var kind: Claviron_Tasks_TaskKind = .unspecified
+  var kind: Claviron_Tasks_TaskKind {
+    get {_storage._kind}
+    set {_uniqueStorage()._kind = newValue}
+  }
 
-  var scope: Claviron_Tasks_TaskScope = .unspecified
+  var scope: Claviron_Tasks_TaskScope {
+    get {_storage._scope}
+    set {_uniqueStorage()._scope = newValue}
+  }
 
-  var dispatch: Claviron_Tasks_TaskDispatch = .unspecified
+  var dispatch: Claviron_Tasks_TaskDispatch {
+    get {_storage._dispatch}
+    set {_uniqueStorage()._dispatch = newValue}
+  }
 
   var timing: Claviron_Tasks_TaskTiming {
-    get {_timing ?? Claviron_Tasks_TaskTiming()}
-    set {_timing = newValue}
+    get {_storage._timing ?? Claviron_Tasks_TaskTiming()}
+    set {_uniqueStorage()._timing = newValue}
   }
   /// Returns true if `timing` has been explicitly set.
-  var hasTiming: Bool {self._timing != nil}
+  var hasTiming: Bool {_storage._timing != nil}
   /// Clears the value of `timing`. Subsequent reads from it will return its default value.
-  mutating func clearTiming() {self._timing = nil}
+  mutating func clearTiming() {_uniqueStorage()._timing = nil}
 
-  var concurrency: UInt32 = 0
+  var concurrency: UInt32 {
+    get {_storage._concurrency}
+    set {_uniqueStorage()._concurrency = newValue}
+  }
 
-  var placements: [Claviron_Tasks_TaskPlacementStatus] = []
+  var placements: [Claviron_Tasks_TaskPlacementStatus] {
+    get {_storage._placements}
+    set {_uniqueStorage()._placements = newValue}
+  }
+
+  var linkTask: Claviron_Tasks_LinkTaskStatus {
+    get {_storage._linkTask ?? Claviron_Tasks_LinkTaskStatus()}
+    set {_uniqueStorage()._linkTask = newValue}
+  }
+  /// Returns true if `linkTask` has been explicitly set.
+  var hasLinkTask: Bool {_storage._linkTask != nil}
+  /// Clears the value of `linkTask`. Subsequent reads from it will return its default value.
+  mutating func clearLinkTask() {_uniqueStorage()._linkTask = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _timing: Claviron_Tasks_TaskTiming? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+nonisolated struct Claviron_Tasks_LinkTaskStatus: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var fleet: String = String()
+
+  var kind: Claviron_Tasks_LinkTaskKind = .unspecified
+
+  var workerPolicy: Claviron_Tasks_LinkTaskStatus.OneOf_WorkerPolicy? = nil
+
+  var staticWorkers: Claviron_Tasks_StaticLinkWorkers {
+    get {
+      if case .staticWorkers(let v)? = workerPolicy {return v}
+      return Claviron_Tasks_StaticLinkWorkers()
+    }
+    set {workerPolicy = .staticWorkers(newValue)}
+  }
+
+  var dynamicWorkers: Claviron_Tasks_DynamicLinkWorkers {
+    get {
+      if case .dynamicWorkers(let v)? = workerPolicy {return v}
+      return Claviron_Tasks_DynamicLinkWorkers()
+    }
+    set {workerPolicy = .dynamicWorkers(newValue)}
+  }
+
+  /// Verified, running command processes managed by this worker task.
+  /// Absent for runner tasks or when the process inventory is unavailable.
+  var runningWorkers: UInt32 {
+    get {_runningWorkers ?? 0}
+    set {_runningWorkers = newValue}
+  }
+  /// Returns true if `runningWorkers` has been explicitly set.
+  var hasRunningWorkers: Bool {self._runningWorkers != nil}
+  /// Clears the value of `runningWorkers`. Subsequent reads from it will return its default value.
+  mutating func clearRunningWorkers() {self._runningWorkers = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  nonisolated enum OneOf_WorkerPolicy: Equatable, Sendable {
+    case staticWorkers(Claviron_Tasks_StaticLinkWorkers)
+    case dynamicWorkers(Claviron_Tasks_DynamicLinkWorkers)
+
+  }
+
+  init() {}
+
+  fileprivate var _runningWorkers: UInt32? = nil
+}
+
+nonisolated struct Claviron_Tasks_StaticLinkWorkers: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var count: UInt32 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+nonisolated struct Claviron_Tasks_DynamicLinkWorkers: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var min: UInt32 = 0
+
+  var maximum: Claviron_Tasks_DynamicLinkWorkers.OneOf_Maximum? = nil
+
+  var max: UInt32 {
+    get {
+      if case .max(let v)? = maximum {return v}
+      return 0
+    }
+    set {maximum = .max(newValue)}
+  }
+
+  var available: Bool {
+    get {
+      if case .available(let v)? = maximum {return v}
+      return false
+    }
+    set {maximum = .available(newValue)}
+  }
+
+  var step: UInt32 = 0
+
+  /// Absent when idle retirement is off.
+  var idleTimeout: SwiftProtobuf.Google_Protobuf_Duration {
+    get {_idleTimeout ?? SwiftProtobuf.Google_Protobuf_Duration()}
+    set {_idleTimeout = newValue}
+  }
+  /// Returns true if `idleTimeout` has been explicitly set.
+  var hasIdleTimeout: Bool {self._idleTimeout != nil}
+  /// Clears the value of `idleTimeout`. Subsequent reads from it will return its default value.
+  mutating func clearIdleTimeout() {self._idleTimeout = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  nonisolated enum OneOf_Maximum: Equatable, Sendable {
+    case max(UInt32)
+    case available(Bool)
+
+  }
+
+  init() {}
+
+  fileprivate var _idleTimeout: SwiftProtobuf.Google_Protobuf_Duration? = nil
 }
 
 nonisolated struct Claviron_Tasks_TaskTiming: Sendable {
@@ -833,12 +1015,16 @@ nonisolated struct Claviron_Tasks_RunTaskFailure: Sendable {
 
 fileprivate nonisolated let _protobuf_package = "claviron.tasks"
 
+nonisolated extension Claviron_Tasks_LinkTaskKind: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0LINK_TASK_KIND_UNSPECIFIED\0\u{1}LINK_TASK_KIND_WORKER\0\u{1}LINK_TASK_KIND_RUNNER\0")
+}
+
 nonisolated extension Claviron_Tasks_RunTaskFailureKind: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0RUN_TASK_FAILURE_KIND_UNSPECIFIED\0\u{1}RUN_TASK_FAILURE_KIND_IO\0\u{1}RUN_TASK_FAILURE_KIND_CANCELLED\0\u{1}RUN_TASK_FAILURE_KIND_SHUTDOWN\0\u{1}RUN_TASK_FAILURE_KIND_GRACEFUL_TIMEOUT\0\u{1}RUN_TASK_FAILURE_KIND_EXECUTION_TIMEOUT\0\u{1}RUN_TASK_FAILURE_KIND_TASK\0")
 }
 
 nonisolated extension Claviron_Tasks_TaskKind: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0TASK_KIND_UNSPECIFIED\0\u{1}TASK_KIND_BUILTIN\0\u{1}TASK_KIND_COMMAND\0\u{1}TASK_KIND_PHP\0\u{1}TASK_KIND_JS\0\u{1}TASK_KIND_LUA\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0TASK_KIND_UNSPECIFIED\0\u{1}TASK_KIND_BUILTIN\0\u{1}TASK_KIND_COMMAND\0\u{1}TASK_KIND_PHP\0\u{1}TASK_KIND_JS\0\u{1}TASK_KIND_LUA\0\u{1}TASK_KIND_LINK\0")
 }
 
 nonisolated extension Claviron_Tasks_TaskScope: SwiftProtobuf._ProtoNameProviding {
@@ -1010,7 +1196,126 @@ nonisolated extension Claviron_Tasks_TaskStatusResponse: SwiftProtobuf.Message, 
 
 nonisolated extension Claviron_Tasks_TaskStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".TaskStatus"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}kind\0\u{1}scope\0\u{1}dispatch\0\u{1}timing\0\u{2}\u{2}concurrency\0\u{1}placements\0\u{c}\u{6}\u{1}")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}kind\0\u{1}scope\0\u{1}dispatch\0\u{1}timing\0\u{2}\u{2}concurrency\0\u{1}placements\0\u{3}link_task\0\u{c}\u{6}\u{1}")
+
+  fileprivate class _StorageClass {
+    var _name: String = String()
+    var _kind: Claviron_Tasks_TaskKind = .unspecified
+    var _scope: Claviron_Tasks_TaskScope = .unspecified
+    var _dispatch: Claviron_Tasks_TaskDispatch = .unspecified
+    var _timing: Claviron_Tasks_TaskTiming? = nil
+    var _concurrency: UInt32 = 0
+    var _placements: [Claviron_Tasks_TaskPlacementStatus] = []
+    var _linkTask: Claviron_Tasks_LinkTaskStatus? = nil
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _name = source._name
+      _kind = source._kind
+      _scope = source._scope
+      _dispatch = source._dispatch
+      _timing = source._timing
+      _concurrency = source._concurrency
+      _placements = source._placements
+      _linkTask = source._linkTask
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
+        case 2: try { try decoder.decodeSingularEnumField(value: &_storage._kind) }()
+        case 3: try { try decoder.decodeSingularEnumField(value: &_storage._scope) }()
+        case 4: try { try decoder.decodeSingularEnumField(value: &_storage._dispatch) }()
+        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._timing) }()
+        case 7: try { try decoder.decodeSingularUInt32Field(value: &_storage._concurrency) }()
+        case 8: try { try decoder.decodeRepeatedMessageField(value: &_storage._placements) }()
+        case 9: try { try decoder.decodeSingularMessageField(value: &_storage._linkTask) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._name.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 1)
+      }
+      if _storage._kind != .unspecified {
+        try visitor.visitSingularEnumField(value: _storage._kind, fieldNumber: 2)
+      }
+      if _storage._scope != .unspecified {
+        try visitor.visitSingularEnumField(value: _storage._scope, fieldNumber: 3)
+      }
+      if _storage._dispatch != .unspecified {
+        try visitor.visitSingularEnumField(value: _storage._dispatch, fieldNumber: 4)
+      }
+      try { if let v = _storage._timing {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+      } }()
+      if _storage._concurrency != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._concurrency, fieldNumber: 7)
+      }
+      if !_storage._placements.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._placements, fieldNumber: 8)
+      }
+      try { if let v = _storage._linkTask {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+      } }()
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Tasks_TaskStatus, rhs: Claviron_Tasks_TaskStatus) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._name != rhs_storage._name {return false}
+        if _storage._kind != rhs_storage._kind {return false}
+        if _storage._scope != rhs_storage._scope {return false}
+        if _storage._dispatch != rhs_storage._dispatch {return false}
+        if _storage._timing != rhs_storage._timing {return false}
+        if _storage._concurrency != rhs_storage._concurrency {return false}
+        if _storage._placements != rhs_storage._placements {return false}
+        if _storage._linkTask != rhs_storage._linkTask {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Tasks_LinkTaskStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".LinkTaskStatus"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}fleet\0\u{1}kind\0\u{3}static_workers\0\u{3}dynamic_workers\0\u{3}running_workers\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1018,13 +1323,35 @@ nonisolated extension Claviron_Tasks_TaskStatus: SwiftProtobuf.Message, SwiftPro
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.fleet) }()
       case 2: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
-      case 3: try { try decoder.decodeSingularEnumField(value: &self.scope) }()
-      case 4: try { try decoder.decodeSingularEnumField(value: &self.dispatch) }()
-      case 5: try { try decoder.decodeSingularMessageField(value: &self._timing) }()
-      case 7: try { try decoder.decodeSingularUInt32Field(value: &self.concurrency) }()
-      case 8: try { try decoder.decodeRepeatedMessageField(value: &self.placements) }()
+      case 3: try {
+        var v: Claviron_Tasks_StaticLinkWorkers?
+        var hadOneofValue = false
+        if let current = self.workerPolicy {
+          hadOneofValue = true
+          if case .staticWorkers(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.workerPolicy = .staticWorkers(v)
+        }
+      }()
+      case 4: try {
+        var v: Claviron_Tasks_DynamicLinkWorkers?
+        var hadOneofValue = false
+        if let current = self.workerPolicy {
+          hadOneofValue = true
+          if case .dynamicWorkers(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.workerPolicy = .dynamicWorkers(v)
+        }
+      }()
+      case 5: try { try decoder.decodeSingularUInt32Field(value: &self._runningWorkers) }()
       default: break
       }
     }
@@ -1035,38 +1362,131 @@ nonisolated extension Claviron_Tasks_TaskStatus: SwiftProtobuf.Message, SwiftPro
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.name.isEmpty {
-      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    if !self.fleet.isEmpty {
+      try visitor.visitSingularStringField(value: self.fleet, fieldNumber: 1)
     }
     if self.kind != .unspecified {
       try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 2)
     }
-    if self.scope != .unspecified {
-      try visitor.visitSingularEnumField(value: self.scope, fieldNumber: 3)
+    switch self.workerPolicy {
+    case .staticWorkers?: try {
+      guard case .staticWorkers(let v)? = self.workerPolicy else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .dynamicWorkers?: try {
+      guard case .dynamicWorkers(let v)? = self.workerPolicy else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case nil: break
     }
-    if self.dispatch != .unspecified {
-      try visitor.visitSingularEnumField(value: self.dispatch, fieldNumber: 4)
-    }
-    try { if let v = self._timing {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    try { if let v = self._runningWorkers {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 5)
     } }()
-    if self.concurrency != 0 {
-      try visitor.visitSingularUInt32Field(value: self.concurrency, fieldNumber: 7)
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Tasks_LinkTaskStatus, rhs: Claviron_Tasks_LinkTaskStatus) -> Bool {
+    if lhs.fleet != rhs.fleet {return false}
+    if lhs.kind != rhs.kind {return false}
+    if lhs.workerPolicy != rhs.workerPolicy {return false}
+    if lhs._runningWorkers != rhs._runningWorkers {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Tasks_StaticLinkWorkers: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".StaticLinkWorkers"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}count\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.count) }()
+      default: break
+      }
     }
-    if !self.placements.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.placements, fieldNumber: 8)
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.count != 0 {
+      try visitor.visitSingularUInt32Field(value: self.count, fieldNumber: 1)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Claviron_Tasks_TaskStatus, rhs: Claviron_Tasks_TaskStatus) -> Bool {
-    if lhs.name != rhs.name {return false}
-    if lhs.kind != rhs.kind {return false}
-    if lhs.scope != rhs.scope {return false}
-    if lhs.dispatch != rhs.dispatch {return false}
-    if lhs._timing != rhs._timing {return false}
-    if lhs.concurrency != rhs.concurrency {return false}
-    if lhs.placements != rhs.placements {return false}
+  static func ==(lhs: Claviron_Tasks_StaticLinkWorkers, rhs: Claviron_Tasks_StaticLinkWorkers) -> Bool {
+    if lhs.count != rhs.count {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Claviron_Tasks_DynamicLinkWorkers: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".DynamicLinkWorkers"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}min\0\u{1}max\0\u{1}step\0\u{3}idle_timeout\0\u{1}available\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.min) }()
+      case 2: try {
+        var v: UInt32?
+        try decoder.decodeSingularUInt32Field(value: &v)
+        if let v = v {
+          if self.maximum != nil {try decoder.handleConflictingOneOf()}
+          self.maximum = .max(v)
+        }
+      }()
+      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.step) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._idleTimeout) }()
+      case 5: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.maximum != nil {try decoder.handleConflictingOneOf()}
+          self.maximum = .available(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.min != 0 {
+      try visitor.visitSingularUInt32Field(value: self.min, fieldNumber: 1)
+    }
+    try { if case .max(let v)? = self.maximum {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 2)
+    } }()
+    if self.step != 0 {
+      try visitor.visitSingularUInt32Field(value: self.step, fieldNumber: 3)
+    }
+    try { if let v = self._idleTimeout {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
+    try { if case .available(let v)? = self.maximum {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Claviron_Tasks_DynamicLinkWorkers, rhs: Claviron_Tasks_DynamicLinkWorkers) -> Bool {
+    if lhs.min != rhs.min {return false}
+    if lhs.maximum != rhs.maximum {return false}
+    if lhs.step != rhs.step {return false}
+    if lhs._idleTimeout != rhs._idleTimeout {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

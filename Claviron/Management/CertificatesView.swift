@@ -101,9 +101,8 @@ struct CertificatesView: View {
                             if key { pendingKeyExport = name }
                             else { Task { await export(commonName: name, key: false) } }
                         },
-                        chain: {
-                            let name = snapshot.certificates[index].certificate?.commonName ?? ""
-                            return await chainPEM(commonName: name)
+                        chain: { certificate in
+                            try await connectionModel.loadCertificateChain(for: certificate, on: serverID)
                         }
                     )
                     .pageRefreshable(every: .seconds(2)) {
@@ -301,16 +300,6 @@ struct CertificatesView: View {
         }
     }
 
-    /// The stored chain for the detail's decoded view: read-only, no outcome row.
-    private func chainPEM(commonName: String) async -> String? {
-        guard !commonName.isEmpty else { return nil }
-        let receipt = try? await connectionModel.performCertificateAction(
-            .exportPEM(commonName: commonName, includePrivateKey: false), for: serverID
-        )
-        guard case let .exported(chain, _)? = receipt, !chain.isEmpty else { return nil }
-        return chain
-    }
-
     private func export(commonName: String, key: Bool) async {
         guard !isPerforming else { return }
         isPerforming = true
@@ -421,13 +410,13 @@ private struct CertificateDetailView: View {
     let isPerforming: Bool
     let perform: (CertificateManagementAction) async -> String?
     let export: (Bool) -> Void
-    /// The stored chain, PEM, for the decoded view; nil when it cannot be read.
-    let chain: () async -> String?
+    let chain: (CertificateObservation) async throws -> String
 
     @State private var pendingRemoval: String?
     @State private var pendingRevocation: String?
     @State private var renewing = false
     @State private var decoded: [DecodedCertificate]?
+    @State private var chainFailure: String?
     @State private var permissions: CertificatePermissions?
     @State private var permissionsFailure: String?
 
@@ -477,7 +466,7 @@ private struct CertificateDetailView: View {
                         value: certificate.commonName.isEmpty ? "Empty string" : certificate.commonName
                     )
                     LabeledContent("ID", value: certificate.id.formatted())
-                    LabeledContent("Issuer", value: decoded?.first.map { $0.selfSigned ? "\($0.issuer) (self-signed)" : $0.issuer } ?? "Reading…")
+                    LabeledContent("Issuer", value: decoded?.first.map { $0.selfSigned ? "\($0.issuer) (self-signed)" : $0.issuer } ?? (decoded == nil ? "Reading…" : "Unavailable"))
                     LabeledContent("Enabled", value: certificate.enabled ? "Yes" : "No")
                     LabeledContent("Issued", value: certificate.issuedAt.reportedDate)
                     LabeledContent("Expires", value: certificate.expiresAt.reportedDate)
@@ -514,7 +503,7 @@ private struct CertificateDetailView: View {
                 case nil:
                     Text("Reading the stored chain…").foregroundStyle(.secondary)
                 case let .some(chain) where chain.isEmpty:
-                    Text("The stored chain could not be read.").foregroundStyle(.secondary)
+                    Text(chainFailure ?? "The stored chain could not be read.").foregroundStyle(.secondary)
                 case let .some(chain):
                     ForEach(Array(chain.enumerated()), id: \.offset) { index, link in
                         if index > 0 { Divider() }
@@ -572,17 +561,26 @@ private struct CertificateDetailView: View {
             }
         }
         .workspaceNavigationTitle(commonName.nonEmpty ?? "Certificate")
-        .task(id: "\(commonName)#\(hosted.certificate?.updatedAt?.seconds ?? 0)") {
+        .task(id: hosted.certificate) {
             decoded = nil
+            chainFailure = nil
             permissions = nil
             permissionsFailure = nil
-            let pem = await chain()
-            guard !Task.isCancelled else { return }
-            decoded = pem.map(CertificateChainDecoder.decode(pem:)) ?? []
-            if let pem {
+            guard let certificate = hosted.certificate else {
+                decoded = []
+                permissionsFailure = "The stored certificate could not be read."
+                return
+            }
+            do {
+                let pem = try await chain(certificate)
+                guard !Task.isCancelled else { return }
+                decoded = CertificateChainDecoder.decode(pem: pem)
                 do { permissions = try CertificatePermissions.read(pem: pem) }
                 catch { permissionsFailure = error.localizedDescription }
-            } else {
+            } catch {
+                guard !Task.isCancelled else { return }
+                decoded = []
+                chainFailure = error.localizedDescription
                 permissionsFailure = "The stored certificate could not be read."
             }
         }

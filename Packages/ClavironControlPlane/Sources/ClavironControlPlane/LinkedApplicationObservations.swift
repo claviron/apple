@@ -16,7 +16,7 @@ public struct LinkedApplicationSnapshot: Equatable, Sendable {
         self.applications = applications
     }
 
-    init(_ value: Claviron_LinkedApplications_ListLinkedApplicationsResponse) {
+    init(_ value: Claviron_Applications_ListLinkApplicationsResponse) {
         capturedAt = value.hasCapturedAt ? value.capturedAt.date : nil
         applications = value.applications.map(LinkedApplicationObservation.init)
     }
@@ -35,14 +35,14 @@ public struct LinkedApplicationIDObservation: Equatable, Hashable, Sendable {
         self.transport = transport
     }
 
-    init(_ value: Claviron_LinkedApplications_LinkedApplicationId) {
+    init(_ value: Claviron_Applications_LinkApplicationId) {
         fleetName = value.fleetName
         name = value.name
         transport = value.transport
     }
 
-    var message: Claviron_LinkedApplications_LinkedApplicationId {
-        var id = Claviron_LinkedApplications_LinkedApplicationId()
+    var message: Claviron_Applications_LinkApplicationId {
+        var id = Claviron_Applications_LinkApplicationId()
         id.fleetName = fleetName
         id.name = name
         id.transport = transport
@@ -84,7 +84,7 @@ public struct LinkedApplicationObservation: Equatable, Sendable {
         self.hosted = hosted
     }
 
-    init(_ value: Claviron_LinkedApplications_LinkedApplicationStatus) {
+    init(_ value: Claviron_Applications_LinkApplicationStatus) {
         id = value.hasInfo && value.info.hasID
             ? LinkedApplicationIDObservation(value.info.id)
             : nil
@@ -113,7 +113,7 @@ public struct LinkedLaneObservation: Equatable, Sendable {
         self.incarnation = incarnation
     }
 
-    init(_ value: Claviron_LinkedApplications_LinkedApplicationLane) {
+    init(_ value: Claviron_Applications_LinkApplicationLane) {
         lane = value.lane
         pid = value.hasPid ? value.pid : nil
         incarnation = value.incarnation
@@ -126,7 +126,7 @@ public enum LinkReachabilityObservation: Equatable, Sendable {
     case disconnected
     case unrecognized(Int)
 
-    init(_ value: Claviron_LinkedApplications_LinkReachability) {
+    init(_ value: Claviron_Applications_LinkReachability) {
         switch value {
         case .unspecified: self = .unspecified
         case .connected: self = .connected

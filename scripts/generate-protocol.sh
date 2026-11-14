@@ -62,7 +62,6 @@ certificates.proto
 applications.proto
 dns.proto
 domains.proto
-linked.proto
 management.proto
 mtls.proto
 server.proto

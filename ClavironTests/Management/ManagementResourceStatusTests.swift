@@ -205,11 +205,12 @@ struct ManagementResourceStatusTests {
 
     @Test
     func taskTimingGroupsSeparateScheduledDaemonAndManualWork() {
-        #expect(TaskTimingGroup.allCases == [.scheduled, .daemon, .manual, .unspecified])
-        #expect(TaskTimingGroup.tabs(for: []) == [.scheduled, .daemon, .manual])
+        // The task view opens on daemons.
+        #expect(TaskTimingGroup.allCases == [.daemon, .scheduled, .manual, .unspecified])
+        #expect(TaskTimingGroup.tabs(for: []) == [.daemon, .scheduled, .manual])
         #expect(
             TaskTimingGroup.tabs(for: [], preserving: .unspecified)
-                == [.scheduled, .daemon, .manual, .unspecified]
+                == [.daemon, .scheduled, .manual, .unspecified]
         )
         #expect(TaskTimingGroup.manual.emptyTitle == "No Manual Tasks")
         #expect(TaskTimingGroup.scheduled.contains(.interval(

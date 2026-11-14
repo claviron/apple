@@ -39,10 +39,8 @@ nonisolated enum InitialConfigurationStep: Int, CaseIterable, Equatable, Sendabl
         case .key:
             return
         case .server:
-            guard !input.serverName.isBlank else {
-                throw InitialConfigurationWizardError.missingServerName
-            }
-            _ = try enrollment.registrationURL()
+            // The server names itself when it answers the enrollment.
+            _ = try enrollment.enrollmentURL()
         case .identity, .review:
             _ = try enrollment.endpoint()
         }
@@ -64,14 +62,11 @@ nonisolated enum InitialConfigurationStep: Int, CaseIterable, Equatable, Sendabl
 
 nonisolated enum InitialConfigurationWizardError: Error, Equatable, LocalizedError, Sendable {
     case deviceKeyRequired
-    case missingServerName
 
     var errorDescription: String? {
         switch self {
         case .deviceKeyRequired:
             "Generate or unlock your device key."
-        case .missingServerName:
-            "Give this Claviron server a name."
         }
     }
 }

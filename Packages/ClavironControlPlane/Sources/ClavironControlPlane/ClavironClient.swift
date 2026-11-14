@@ -75,6 +75,8 @@ public protocol ClavironClient: Sendable {
 
     /// Loads certificates, their dates and aliases, and attached servers.
     func loadCertificates() async throws -> CertificateInventorySnapshot
+    /// Loads the public PEM chain for the selected inventory entry.
+    func loadCertificateChain(for certificate: CertificateObservation) async throws -> String
     /// Available permission records from the existing authorization manager.
     func loadCertificatePermissions() async throws -> CertificatePermissions
 
@@ -202,6 +204,13 @@ public extension ClavironClient {
         throw ClavironClientFailure(
             kind: .protocolMismatch,
             diagnosticDetail: "This Claviron client does not implement certificate management actions."
+        )
+    }
+
+    func loadCertificateChain(for certificate: CertificateObservation) async throws -> String {
+        throw ClavironClientFailure(
+            kind: .protocolMismatch,
+            diagnosticDetail: "This Claviron client does not implement public certificate reads."
         )
     }
 

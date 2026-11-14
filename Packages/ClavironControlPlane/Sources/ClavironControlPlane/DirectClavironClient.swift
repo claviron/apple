@@ -80,12 +80,12 @@ public actor DirectClavironClient: ClavironClient {
 
     public func loadLinkedApplications() async throws -> LinkedApplicationSnapshot? {
         do {
-            let client = Claviron_LinkedApplications_LinkedApplicationManager.Client(
+            let client = Claviron_Applications_ApplicationManager.Client(
                 wrapping: grpcClient
             )
-            let response = try await client.listLinkedApplications(
+            let response = try await client.listLinkApplications(
                 request: ClientRequest(
-                    message: Claviron_LinkedApplications_ListLinkedApplicationsRequest()
+                    message: Claviron_Applications_ListLinkApplicationsRequest()
                 ),
                 options: callOptions
             )
@@ -101,10 +101,10 @@ public actor DirectClavironClient: ClavironClient {
         _ action: LinkedApplicationAction
     ) async throws -> LinkedApplicationReceipt {
         do {
-            let client = Claviron_LinkedApplications_LinkedApplicationManager.Client(
+            let client = Claviron_Applications_ApplicationManager.Client(
                 wrapping: grpcClient
             )
-            var message = Claviron_LinkedApplications_LinkedApplicationCommandRequest()
+            var message = Claviron_Applications_LinkApplicationCommandRequest()
             message.id = action.link.message
             if let application = action.application {
                 var id = Claviron_Applications_ApplicationId()
@@ -117,16 +117,16 @@ public actor DirectClavironClient: ClavironClient {
                 message.payload = payload
             }
             let request = ClientRequest(message: message)
-            let response: Claviron_LinkedApplications_LinkedApplicationCommandResponse
+            let response: Claviron_Applications_LinkApplicationCommandResponse
             switch action {
             case .start:
-                response = try await client.startLinkedApplication(request: request, options: callOptions)
+                response = try await client.startLinkApplication(request: request, options: callOptions)
             case .stop:
-                response = try await client.stopLinkedApplication(request: request, options: callOptions)
+                response = try await client.stopLinkApplication(request: request, options: callOptions)
             case .restart:
-                response = try await client.restartLinkedApplication(request: request, options: callOptions)
+                response = try await client.restartLinkApplication(request: request, options: callOptions)
             case .command:
-                response = try await client.sendLinkedCommand(request: request, options: callOptions)
+                response = try await client.sendLinkCommand(request: request, options: callOptions)
             }
             return LinkedApplicationReceipt(
                 action: action,
@@ -757,6 +757,26 @@ public actor DirectClavironClient: ClavironClient {
         }
     }
 
+    public func loadCertificateChain(for certificate: CertificateObservation) async throws -> String {
+        var message = Claviron_Acme_GetCertificateRequest()
+        message.hostname = certificate.commonName
+        do {
+            let client = Claviron_Acme_AcmeManager.Client(wrapping: grpcClient)
+            let response = try await client.getCertificate(
+                request: ClientRequest(message: message), options: callOptions
+            )
+            guard response.id == certificate.id, !response.fullchainPem.isEmpty else {
+                throw ClavironClientFailure(
+                    kind: .serverRejected,
+                    diagnosticDetail: "The server did not return a public chain for the selected certificate."
+                )
+            }
+            return response.fullchainPem
+        } catch {
+            throw Self.map(error)
+        }
+    }
+
     public func loadCertificatePermissions() async throws -> CertificatePermissions {
         var names: [String] = []
         var cursor: String?
@@ -1011,9 +1031,10 @@ public actor DirectClavironClient: ClavironClient {
                     request: ClientRequest(message: message), options: callOptions
                 )
                 return Self.exportReceipt(response, includePrivateKey: includePrivateKey)
-            case let .add(hostnames):
+            case let .add(hostnames, method):
                 var message = Claviron_Acme_AddCertificateRequest()
                 message.aliases = hostnames
+                message.method = Self.challengeMethod(method)
                 let response = try await acmeClient.addCertificate(
                     request: ClientRequest(message: message),
                     options: issuanceCallOptions
@@ -1027,9 +1048,10 @@ public actor DirectClavironClient: ClavironClient {
                     options: callOptions
                 )
                 return Self.certificateOperationReceipt(response)
-            case let .renewACME(commonName):
+            case let .renewACME(commonName, method):
                 var message = Claviron_Acme_RenewCertificateRequest()
                 message.cn = commonName
+                message.method = Self.challengeMethod(method)
                 // The order, challenge and finalize happen inside the call,
                 // under the server's ACME policy, like issuance.
                 let response = try await acmeClient.renewCertificate(
@@ -2124,6 +2146,18 @@ public actor DirectClavironClient: ClavironClient {
         )
     }
 
+    /// The protocol's value; `nil` asks for the server's default.
+    private nonisolated static func challengeMethod(
+        _ method: ACMEChallengeMethod?
+    ) -> Claviron_Acme_ChallengeMethod {
+        switch method {
+        case nil: .default
+        case .http01?: .http01
+        case .dns01?: .dns01
+        case .tlsAlpn01?: .tlsAlpn01
+        }
+    }
+
     private nonisolated static func taskKind(
         _ value: Claviron_Tasks_TaskKind
     ) -> TaskKindObservation {
@@ -2134,6 +2168,7 @@ public actor DirectClavironClient: ClavironClient {
         case .php: .php
         case .js: .js
         case .lua: .lua
+        case .link: .link
         case let .UNRECOGNIZED(rawValue): .unrecognized(rawValue)
         }
     }
